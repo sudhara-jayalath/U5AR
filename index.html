@@ -1,0 +1,1431 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Interaktiver Pflanzplaner für die U5-Haltestelle Arenen: Mini-Stadtwaldgarten, Vorplatz und Randbereich mit Schnitten, Ökologie-Kennwerten, Pflanzlisten und Massen.">
+<title>U5 Arenen Pflanzplaner</title>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style id="pp-style">
+/* Layout: drawing sheet — title block on top, input legend rail left, section drawing + schedules right */
+:root {
+  --bg: #eef1ec; --paper: #fafbf8; --ink: #1c2a21; --muted: #5a6a60; --line: #d3dbd1;
+  --moss: #2e6a44; --moss-2: #5f9a6f; --moss-soft: #dfece2; --water: #2b66a6; --water-soft: #d8e6f4;
+  --soil: #8a6844; --soil-soft: #eee4d6; --pave: #c9cfc7;
+  --ok: #2c7a4b; --ok-soft: #dff0e5; --warn: #a96f12; --warn-soft: #faefd9; --bad: #b23a3a; --bad-soft: #f7e0e0;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111713; --paper: #18201a; --ink: #e1eae3; --muted: #98a89d; --line: #2c3a30;
+    --moss: #7cc596; --moss-2: #4f8d62; --moss-soft: #1e3326; --water: #82b4e8; --water-soft: #172a3e;
+    --soil: #caa47a; --soil-soft: #2b2419; --pave: #3a443c;
+    --ok: #6fc68f; --ok-soft: #1b3324; --warn: #e2b25a; --warn-soft: #33281a; --bad: #ee8282; --bad-soft: #3a1f1f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111713; --paper: #18201a; --ink: #e1eae3; --muted: #98a89d; --line: #2c3a30;
+  --moss: #7cc596; --moss-2: #4f8d62; --moss-soft: #1e3326; --water: #82b4e8; --water-soft: #172a3e;
+  --soil: #caa47a; --soil-soft: #2b2419; --pave: #3a443c;
+  --ok: #6fc68f; --ok-soft: #1b3324; --warn: #e2b25a; --warn-soft: #33281a; --bad: #ee8282; --bad-soft: #3a1f1f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1340px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 18px 48px; display: grid; gap: 18px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem); font-weight: 700; }
+h2 { font-size: 1.45rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow { font: 600 11.5px var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.num, .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* title block */
+.tb { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: end; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.tb-left { display: grid; gap: 6px; min-width: 0; }
+.tb-left p { max-width: 62ch; color: var(--muted); }
+.tb-right { display: grid; gap: 8px; justify-items: end; }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.status { font-size: 12.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); }
+.status.dirty { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+.status.clean { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+.status.ro { color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; background: var(--paper); color: var(--muted); padding: 5px 10px; font: 600 12.5px var(--f-mono); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.btn { font: 600 13px var(--f-body); padding: 6px 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--moss); }
+.btn.primary { background: var(--moss); border-color: var(--moss); color: var(--paper); }
+.btn.sm { padding: 4px 9px; font-size: 12.5px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--moss); outline-offset: 2px; }
+.panel { border: 1px solid var(--line); background: var(--paper); border-radius: 6px; padding: 12px; display: grid; gap: 8px; }
+.panel textarea { width: 100%; min-height: 120px; font: 12px var(--f-mono); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
+.panel .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: 4px 22px; border-bottom: 1px solid var(--line); }
+.tabs button { background: none; border: 0; padding: 8px 0 10px; font: 600 15px var(--f-body); color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; display: grid; text-align: left; }
+.tabs button small { font: 400 11.5px var(--f-mono); color: var(--muted); }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--moss); }
+
+/* area */
+.area-head { display: grid; gap: 6px; }
+.area-head p { max-width: 75ch; color: var(--muted); }
+.area-grid { display: grid; grid-template-columns: minmax(260px, 330px) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 960px) { .area-grid { grid-template-columns: minmax(0, 1fr); } }
+.rail { display: grid; gap: 12px; min-width: 0; }
+.main { display: grid; gap: 16px; min-width: 0; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); padding: 10px 12px 12px; margin: 0; display: grid; gap: 7px; min-width: 0; }
+legend { font: 600 11.5px var(--f-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 0 4px; }
+.fld { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; font-size: 14px; }
+.fld .in { display: inline-flex; align-items: center; gap: 5px; }
+.fld em { font-style: normal; font: 12px var(--f-mono); color: var(--muted); min-width: 3.2em; }
+input[type="number"], input[type="text"], select { font: 13.5px var(--f-mono); padding: 4px 6px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); color: var(--ink); }
+input[type="number"] { width: 6.2em; text-align: right; }
+input[type="text"] { width: 100%; font-family: var(--f-body); }
+select { max-width: 100%; }
+.fld.ex span:first-child::after { content: " · " attr(data-ex); color: var(--warn); font-size: 12px; }
+.hint { font-size: 12.5px; color: var(--muted); }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.calc { font: 12.5px var(--f-mono); color: var(--muted); display: grid; gap: 2px; border-top: 1px dashed var(--line); padding-top: 6px; }
+.calc b { color: var(--ink); font-weight: 600; }
+
+/* section drawing */
+figure.sec { margin: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 12px; display: grid; gap: 8px; }
+figure.sec figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; align-items: baseline; }
+.svgwrap { overflow-x: auto; }
+.svgwrap svg { display: block; width: 100%; min-width: 560px; height: auto; }
+.s-ground { fill: var(--soil-soft); }
+.s-pave { fill: var(--pave); }
+.s-gw { stroke: var(--water); stroke-width: 1.6; stroke-dasharray: 7 4; fill: none; }
+.s-water { fill: var(--water-soft); }
+.s-gline { stroke: var(--ink); stroke-width: 1.2; }
+.s-shrub { fill: var(--moss); fill-opacity: 0.9; }
+.s-shrub2 { fill: var(--moss-2); fill-opacity: 0.9; }
+.s-low { fill: var(--moss-soft); stroke: var(--moss); stroke-width: 1; }
+.s-ghost { stroke: var(--moss); stroke-dasharray: 3 3; fill: none; stroke-width: 1.2; }
+.s-roof { fill: var(--ink); }
+.s-col { stroke: var(--ink); stroke-width: 2; }
+.s-person { stroke: var(--ink); stroke-width: 1.6; fill: none; }
+.s-txt { fill: var(--muted); font: 11px var(--f-mono); }
+.s-txt-ink { fill: var(--ink); font: 600 11px var(--f-mono); }
+.s-ok { stroke: var(--ok); stroke-width: 1.8; fill: none; }
+.s-bad { stroke: var(--bad); stroke-width: 1.8; fill: none; }
+.s-thin { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; fill: none; }
+.s-pit { fill: var(--soil-soft); stroke: var(--soil); stroke-width: 1.2; }
+.s-pit-bad { fill: var(--bad-soft); stroke: var(--bad); stroke-width: 1.6; }
+.s-ext { fill: var(--soil-soft); stroke: var(--soil); stroke-width: 0.8; stroke-dasharray: 3 2; }
+.s-crown { fill: var(--moss); fill-opacity: 0.45; stroke: var(--moss); stroke-width: 1; }
+.s-trunk { stroke: var(--soil); stroke-width: 3; }
+.s-trunk-bad { stroke: var(--bad); stroke-width: 3; }
+.s-grate { stroke: var(--ink); stroke-width: 3; }
+.s-w { fill: var(--warn-soft); }
+.s-road { fill: var(--pave); }
+.s-rail { fill: var(--ink); }
+.s-bar { fill: var(--ink); }
+
+/* chips & indicators */
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { font-size: 12px; line-height: 1.3; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--paper); white-space: nowrap; }
+.chip.ok { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+.chip.warn { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+.chip.bad { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+.chip.info { color: var(--water); border-color: var(--water); background: var(--water-soft); }
+.inds { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ind { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px; display: grid; gap: 2px; }
+.ind .k { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.ind .k::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex: none; }
+.ind.ok .k::before { background: var(--ok); }
+.ind.warn .k::before { background: var(--warn); }
+.ind.bad .k::before { background: var(--bad); }
+.ind .v { font: 600 1.25rem var(--f-mono); font-variant-numeric: tabular-nums; }
+.ind .s { font-size: 12px; color: var(--muted); }
+.qual { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.qual div { border-top: 2px solid var(--moss); padding-top: 6px; display: grid; gap: 3px; }
+.qual h4 { margin: 0; font: 600 11.5px var(--f-mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.qual p { font-size: 14px; }
+
+/* schedules */
+.block { display: grid; gap: 8px; min-width: 0; }
+.block > header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; }
+.tablewrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; }
+table.sched { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.sched th { text-align: left; font: 600 11px var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.sched td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.sched tr:last-child td { border-bottom: 0; }
+table.sched .num { text-align: right; white-space: nowrap; }
+table.sched input[type="number"] { width: 5.4em; }
+.bot { font-style: italic; }
+.de { display: block; font-size: 12.5px; color: var(--muted); }
+.x { border: 1px solid var(--line); background: none; color: var(--muted); border-radius: 4px; width: 26px; height: 26px; cursor: pointer; font-size: 15px; line-height: 1; }
+.x:hover { color: var(--bad); border-color: var(--bad); }
+.listtools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.addrow { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.addrow select { max-width: 260px; }
+.listsum { font: 12.5px var(--f-mono); color: var(--muted); }
+.listsum.bad { color: var(--bad); }
+details.custom { width: 100%; }
+details.custom summary { cursor: pointer; font-size: 13px; color: var(--moss); }
+details.custom .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; padding-top: 8px; align-items: end; }
+details.custom label { display: grid; gap: 3px; font-size: 12.5px; color: var(--muted); }
+.zone-title { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+
+/* overview */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: grid; gap: 10px; align-content: start; }
+.card dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; margin: 0; font-size: 14px; }
+.card dt { color: var(--muted); }
+.card dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.warnlist { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.warnlist li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; font-size: 14px; }
+.foot { font-size: 13px; color: var(--muted); display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
+.foot a { color: var(--water); }
+.foot ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+@media (max-width: 640px) {
+  .tb { grid-template-columns: minmax(0, 1fr); }
+  .tb-right { justify-items: start; }
+  .actions { justify-content: flex-start; }
+  .hide-sm { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<noscript><p style="padding:16px">Dieser Planer braucht JavaScript. / This planner needs JavaScript.</p></noscript>
+<div id="app"></div>
+<script type="application/json" id="saved-state">null</script>
+<script id="pp-app">
+(function () {
+"use strict";
+
+/* ---------------------------------------------------------------- basics */
+const STORE_DRAFT = "u5pp-draft-v1", STORE_UI = "u5pp-ui-v1";
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const lsDel = k => { try { localStorage.removeItem(k); } catch (e) {} };
+let LANG = "de";
+const tx = (de, en) => (LANG === "en" ? en : de);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sum = a => a.reduce((x, y) => x + (Number(y) || 0), 0);
+const clone = o => JSON.parse(JSON.stringify(o));
+const r1 = v => Math.round(v * 10) / 10;
+function nf(n, d) {
+  if (n == null || !isFinite(n)) return "–";
+  return Number(n).toLocaleString(LANG === "en" ? "en-GB" : "de-DE", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+}
+const pct = v => nf(v * 100, 0) + " %";
+
+/* ---------------------------------------------------------------- species catalogue
+   l: layer · h: height range (m) · c: crown range (m) · m: tolerance of wet soil / high groundwater (1 low, 2 medium, 3 high)
+   o: origin (v regional VKG 1, f native FoVG, n not native, a archaeophyte, s native species cultivar, c check)
+   t toxic · e evergreen (1, 0.5 semi) · bee · bird · th thorns · galk rating for plaza trees */
+const CAT = {
+  coravel: { b: "Corylus avellana", de: "Gewöhnliche Hasel", l: "shrub", h: [4, 6], m: 2, o: "v", bee: 1, bird: 1 },
+  cormas: { b: "Cornus mas", de: "Kornelkirsche", l: "shrub", h: [4, 6], m: 1, o: "n", bee: 1, bird: 1 },
+  sambnig: { b: "Sambucus nigra", de: "Schwarzer Holunder", l: "shrub", h: [3, 6], m: 3, o: "v", t: 1, bee: 1, bird: 1 },
+  fraaln: { b: "Frangula alnus", de: "Faulbaum", l: "shrub", h: [2, 5], m: 3, o: "v", t: 1, bee: 1, bird: 1 },
+  corsan: { b: "Cornus sanguinea", de: "Roter Hartriegel", l: "shrub", h: [2, 4], m: 3, o: "v", bee: 1, bird: 1 },
+  vibopu: { b: "Viburnum opulus", de: "Gewöhnlicher Schneeball", l: "shrub", h: [2, 4], m: 3, o: "v", t: 1, bee: 1, bird: 1 },
+  ligvul: { b: "Ligustrum vulgare", de: "Gewöhnlicher Liguster", l: "shrub", h: [2, 4], m: 2, o: "c", t: 1, e: 0.5, bee: 1, bird: 1 },
+  ilexaq: { b: "Ilex aquifolium", de: "Stechpalme", l: "shrub", h: [3, 6], m: 2, o: "v", t: 1, e: 1, bee: 1, bird: 1 },
+  pruspi: { b: "Prunus spinosa", de: "Schlehe", l: "shrub", h: [1.5, 3], m: 1, o: "v", th: 1, bee: 1, bird: 1 },
+  roscan: { b: "Rosa canina", de: "Hundsrose", l: "shrub", h: [2, 3], m: 1, o: "v", th: 1, bee: 1, bird: 1 },
+  coralb: { b: "Cornus alba 'Sibirica'", de: "Sibirischer Hartriegel", l: "shrub", h: [2, 3], m: 3, o: "n", bird: 1 },
+  cramon: { b: "Crataegus monogyna", de: "Eingriffeliger Weißdorn", l: "shrub", h: [4, 8], m: 1, o: "v", th: 1, bee: 1, bird: 1 },
+  salcap: { b: "Salix caprea", de: "Sal-Weide", l: "shrub", h: [4, 8], m: 2, o: "v", bee: 1 },
+  salaur: { b: "Salix aurita", de: "Ohr-Weide", l: "shrub", h: [1, 3], m: 3, o: "v", bee: 1 },
+  cytsco: { b: "Cytisus scoparius", de: "Besenginster", l: "shrub", h: [1, 2], m: 1, o: "v", t: 1, bee: 1 },
+  malsyl: { b: "Malus sylvestris", de: "Wild-Apfel", l: "tree2", h: [6, 10], m: 2, o: "v", bee: 1, bird: 1 },
+  pruavi: { b: "Prunus avium", de: "Vogel-Kirsche", l: "tree2", h: [15, 20], m: 1, o: "f", bee: 1, bird: 1 },
+  prupad: { b: "Prunus padus", de: "Gewöhnliche Traubenkirsche", l: "tree2", h: [8, 15], m: 3, o: "v", bee: 1, bird: 1 },
+  sorauc: { b: "Sorbus aucuparia", de: "Eberesche", l: "tree2", h: [10, 15], m: 2, o: "v", bee: 1, bird: 1 },
+  betpen: { b: "Betula pendula", de: "Hänge-Birke", l: "pioneer", h: [15, 25], m: 1, o: "f" },
+  betpub: { b: "Betula pubescens", de: "Moor-Birke", l: "pioneer", h: [15, 20], m: 3, o: "f" },
+  poptre: { b: "Populus tremula", de: "Zitter-Pappel", l: "pioneer", h: [15, 20], m: 2, o: "f" },
+  querob: { b: "Quercus robur", de: "Stiel-Eiche", l: "tree1", h: [25, 35], m: 3, o: "f", bird: 1 },
+  quepet: { b: "Quercus petraea", de: "Trauben-Eiche", l: "tree1", h: [25, 35], m: 1, o: "f", bird: 1 },
+  fagsyl: { b: "Fagus sylvatica", de: "Rot-Buche", l: "tree1", h: [25, 35], m: 1, o: "f" },
+  alnglu: { b: "Alnus glutinosa", de: "Schwarz-Erle", l: "tree1", h: [20, 25], m: 3, o: "f" },
+  ulmlae: { b: "Ulmus laevis", de: "Flatter-Ulme", l: "tree1", h: [25, 30], m: 3, o: "v", bee: 1 },
+  carbet: { b: "Carpinus betulus", de: "Hainbuche", l: "street", h: [10, 20], c: [7, 12], m: 2, o: "f", galk: "r" },
+  tiltom: { b: "Tilia tomentosa 'Brabant'", de: "Brabanter Silber-Linde", l: "street", h: [20, 25], c: [12, 18], m: 1, o: "n", bee: 1, galk: "g" },
+  acecam: { b: "Acer campestre 'Huibers Elegant'", de: "Feld-Ahorn 'Huibers Elegant'", l: "street", h: [6, 10], c: [3, 5], m: 2, o: "s", bee: 1, galk: "t" },
+  alnspa: { b: "Alnus × spaethii", de: "Purpur-Erle", l: "street", h: [12, 15], c: [8, 10], m: 3, o: "n", bee: 1, galk: "g" },
+  luzsyl: { b: "Luzula sylvatica", de: "Wald-Hainsimse", l: "gc", h: [0.3, 0.6], m: 2, o: "v", e: 1 },
+  carsyl: { b: "Carex sylvatica", de: "Wald-Segge", l: "gc", h: [0.3, 0.6], m: 2, o: "v" },
+  descesp: { b: "Deschampsia cespitosa", de: "Rasen-Schmiele", l: "gc", h: [0.4, 0.8], m: 3, o: "v" },
+  ajurep: { b: "Ajuga reptans", de: "Kriechender Günsel", l: "gc", h: [0.1, 0.2], m: 2, o: "v", bee: 1 },
+  lamgal: { b: "Lamium galeobdolon", de: "Goldnessel", l: "gc", h: [0.2, 0.3], m: 2, o: "v", bee: 1 },
+  vinmin: { b: "Vinca minor", de: "Kleines Immergrün", l: "gc", h: [0.1, 0.2], m: 2, o: "a", t: 1, e: 1 },
+  hedhel: { b: "Hedera helix", de: "Gewöhnlicher Efeu", l: "gc", h: [0.1, 0.2], m: 2, o: "v", t: 1, e: 1, bee: 1, bird: 1 },
+  galodo: { b: "Galium odoratum", de: "Waldmeister", l: "gc", h: [0.1, 0.3], m: 2, o: "v" },
+  dryfil: { b: "Dryopteris filix-mas", de: "Gewöhnlicher Wurmfarn", l: "gc", h: [0.6, 1.0], m: 2, o: "v", t: 1 },
+  athfil: { b: "Athyrium filix-femina", de: "Wald-Frauenfarn", l: "gc", h: [0.5, 1.0], m: 3, o: "v" },
+  anenem: { b: "Anemone nemorosa", de: "Busch-Windröschen", l: "geo", h: [0.1, 0.2], m: 2, o: "v", t: 1 },
+  allurs: { b: "Allium ursinum", de: "Bär-Lauch", l: "geo", h: [0.2, 0.3], m: 3, o: "v", bee: 1 },
+  desfle: { b: "Deschampsia flexuosa", de: "Draht-Schmiele", l: "herb", h: [0.3, 0.6], m: 1, o: "v" },
+  luzpil: { b: "Luzula pilosa", de: "Behaarte Hainsimse", l: "herb", h: [0.1, 0.3], m: 2, o: "v" },
+  maibif: { b: "Maianthemum bifolium", de: "Schattenblümchen", l: "herb", h: [0.1, 0.2], m: 2, o: "v", t: 1 },
+  oxaace: { b: "Oxalis acetosella", de: "Wald-Sauerklee", l: "herb", h: [0.05, 0.1], m: 2, o: "v" },
+  drycar: { b: "Dryopteris carthusiana", de: "Dorniger Wurmfarn", l: "herb", h: [0.3, 0.8], m: 2, o: "v" },
+  drydil: { b: "Dryopteris dilatata", de: "Breitblättriger Dornfarn", l: "herb", h: [0.5, 1.0], m: 3, o: "v" },
+  vacmyr: { b: "Vaccinium myrtillus", de: "Heidelbeere", l: "herb", h: [0.2, 0.5], m: 2, o: "v", bird: 1 },
+  holmol: { b: "Holcus mollis", de: "Weiches Honiggras", l: "herb", h: [0.2, 0.5], m: 2, o: "v" },
+  molcae: { b: "Molinia caerulea", de: "Pfeifengras", l: "herb", h: [0.5, 1.0], m: 3, o: "v" },
+  carrem: { b: "Carex remota", de: "Winkel-Segge", l: "herb", h: [0.3, 0.6], m: 3, o: "v" },
+  lysnem: { b: "Lysimachia nemorum", de: "Hain-Gilbweiderich", l: "herb", h: [0.1, 0.2], m: 3, o: "v" },
+  ficver: { b: "Ficaria verna", de: "Scharbockskraut", l: "herb", h: [0.05, 0.15], m: 3, o: "v", t: 1, bee: 1 }
+};
+const LAYERS = {
+  shrub: ["Strauch", "Shrub"], tree1: ["Baum 1. Ordnung", "Tree, 1st order"], tree2: ["Baum 2. Ordnung", "Tree, 2nd order"],
+  pioneer: ["Pionierbaum", "Pioneer tree"], street: ["Platzbaum", "Plaza tree"], gc: ["Bodendecker", "Ground cover"],
+  geo: ["Geophyt", "Geophyte"], herb: ["Waldkraut", "Forest herb"]
+};
+const ORIGINS = {
+  v: ["gebietseigen (VKG 1)", "regional (VKG 1)"], f: ["heimisch (FoVG)", "native (FoVG)"], n: ["nicht heimisch", "not native"],
+  a: ["Archäophyt", "archaeophyte"], s: ["heimische Art, Sorte", "native species, cultivar"], c: ["Herkunft prüfen", "check origin"]
+};
+const layerName = l => (LAYERS[l] ? tx(LAYERS[l][0], LAYERS[l][1]) : l);
+function sp(id) {
+  return CAT[id] || (state.custom && state.custom[id]) || { b: id, de: "", l: "shrub", h: [1, 2], m: 2, o: "c" };
+}
+function allCat() { return Object.assign({}, CAT, state.custom || {}); }
+function abbr(b) {
+  const p = String(b).split(" ");
+  if (p.length < 2) return b;
+  if (p[1] === "×" && p[2]) return p[0][0] + ". × " + p[2];
+  return p[0][0] + ". " + p[1];
+}
+
+/* ---------------------------------------------------------------- defaults (from the Phase 3 workbooks, 22.10.2026) */
+const DEFAULTS = {
+  meta: { savedAt: "", version: 1 },
+  custom: {},
+  sw: {
+    islands: [
+      { id: "I-01", a: 115, e: 23 }, { id: "I-02", a: 130, e: 26 }, { id: "I-03", a: 140, e: 28 },
+      { id: "I-04", a: 125, e: 25 }, { id: "I-05", a: 120, e: 25 }, { id: "I-06", a: 120, e: 25 }
+    ],
+    char: "balanced", dens: 0.75, wB: 1.25, target: 3.0, solPer: 2,
+    gcA: 3, gcB: 7, geoShare: 0.3, geoDens: 12, mulchA: [0.08, 0.10], mulchB: [0.05, 0.08], topA: 0.30, topB: 0.25,
+    gw: 1.2, mound: false, moundH: 0.4, path: 1.5, wA: 5, roofH: 10, roofD: 40, eye: 1.6,
+    shrubs: [
+      { id: "coravel", s: 0.15 }, { id: "cormas", s: 0.10 }, { id: "sambnig", s: 0.08 }, { id: "fraaln", s: 0.05 },
+      { id: "corsan", s: 0.12 }, { id: "vibopu", s: 0.10 }, { id: "ligvul", s: 0.10 }, { id: "ilexaq", s: 0.06 },
+      { id: "pruspi", s: 0.08 }, { id: "roscan", s: 0.10 }, { id: "coralb", s: 0.06 }
+    ],
+    gA: [{ id: "hedhel", s: 0.30 }, { id: "lamgal", s: 0.20 }, { id: "luzsyl", s: 0.15 }, { id: "galodo", s: 0.15 }, { id: "dryfil", s: 0.10 }, { id: "athfil", s: 0.10 }],
+    gB: [{ id: "luzsyl", s: 0.25 }, { id: "carsyl", s: 0.20 }, { id: "descesp", s: 0.10 }, { id: "ajurep", s: 0.15 }, { id: "lamgal", s: 0.15 }, { id: "vinmin", s: 0.15 }],
+    geo: [{ id: "anenem", s: 0.6 }, { id: "allurs", s: 0.4 }]
+  },
+  vp: {
+    trees: [
+      { id: "carbet", n: 5, c: 12, h: 15, g: "L", grate: 9, vol: 36 },
+      { id: "tiltom", n: 7, c: 13, h: 22, g: "L", grate: 9, vol: 36 },
+      { id: "acecam", n: 13, c: 5, h: 10, g: "S", grate: 6.25, vol: 24 },
+      { id: "alnspa", n: 12, c: 9, h: 14, g: "S", grate: 6.25, vol: 24 }
+    ],
+    root: "bern", pit: 1.5, ext: 1.1, gw: 1.8, clear: 0.3, auto: true, plaza: 5000, fll: 12, cb: 2.5
+  },
+  rb: {
+    total: 5300, mantel: 1750, saumShare: 0.2, pathLen: 400, stripW: 0.625, feucht: 600,
+    char: "buei", dens: "forest",
+    wk: [
+      { id: "querob", s: 0.32, d: 6000 }, { id: "quepet", s: 0.20, d: 6000 }, { id: "fagsyl", s: 0.15, d: 8000 }, { id: "betpen", s: 0.10, d: 3000 },
+      { id: "sorauc", s: 0.08, d: 3500 }, { id: "poptre", s: 0.05, d: 3000 }, { id: "fraaln", s: 0.05, d: 5000 }, { id: "ilexaq", s: 0.05, d: 4000 }
+    ],
+    fb: [
+      { id: "alnglu", s: 0.30, d: 3000 }, { id: "ulmlae", s: 0.15, d: 3500 }, { id: "querob", s: 0.20, d: 6000 }, { id: "betpub", s: 0.10, d: 3000 },
+      { id: "prupad", s: 0.07, d: 4000 }, { id: "fraaln", s: 0.08, d: 5000 }, { id: "vibopu", s: 0.05, d: 5000 }, { id: "salaur", s: 0.05, d: 5000 }
+    ],
+    wm: [
+      { id: "coravel", s: 0.16, d: 6667 }, { id: "fraaln", s: 0.10, d: 6667 }, { id: "sorauc", s: 0.10, d: 5000 }, { id: "cramon", s: 0.08, d: 6667 },
+      { id: "pruspi", s: 0.10, d: 6667 }, { id: "roscan", s: 0.08, d: 6667 }, { id: "vibopu", s: 0.07, d: 6667 }, { id: "salcap", s: 0.05, d: 6667 },
+      { id: "ilexaq", s: 0.05, d: 4000 }, { id: "cytsco", s: 0.04, d: 6667 }, { id: "betpen", s: 0.06, d: 3000 }, { id: "pruavi", s: 0.06, d: 3000 },
+      { id: "malsyl", s: 0.05, d: 3000 }
+    ],
+    hk: [
+      { id: "desfle", s: 0.25 }, { id: "luzpil", s: 0.15 }, { id: "maibif", s: 0.10 }, { id: "oxaace", s: 0.10 }, { id: "drycar", s: 0.10 },
+      { id: "drydil", s: 0.05 }, { id: "vacmyr", s: 0.10 }, { id: "anenem", s: 0.10 }, { id: "holmol", s: 0.05 }
+    ],
+    hf: [
+      { id: "molcae", s: 0.20 }, { id: "carrem", s: 0.20 }, { id: "descesp", s: 0.15 }, { id: "athfil", s: 0.15 },
+      { id: "lysnem", s: 0.10 }, { id: "ficver", s: 0.10 }, { id: "drycar", s: 0.10 }
+    ],
+    initShare: 0.10, initDens: 6, seedSaum: 3, seedLawn: 20, topsoil: 0.20, startArea: 250,
+    gw: 1.5, guard: true, W: 1.3, speed: "70", wSaum: 2, wStrauch: 4, wBaum: 4, hWK: 15, hFB: 12, hWM: 5
+  }
+};
+
+/* ---------------------------------------------------------------- presets */
+const SW_CHAR = {
+  wild: { dens: 1.0, wB: 1.0, target: 3.5, name: ["Dicht & wild", "Dense & wild"] },
+  balanced: { dens: 0.75, wB: 1.25, target: 3.0, name: ["Ausgewogen", "Balanced"] },
+  open: { dens: 0.5, wB: 2.0, target: 2.5, name: ["Licht & offen", "Light & open"] }
+};
+const SW_Q = {
+  wild: {
+    space: ["Dichte, hohe Strauchinseln. Die Wege wirken wie Schneisen; das Dach ist vor allem zwischen den Inseln zu sehen.", "Dense, tall shrub islands. The paths feel like clearings; the roof shows mainly between the islands."],
+    eco: ["Viel Deckung und Nistraum für Vögel, schneller Bestandesschluss.", "Plenty of cover and nesting space for birds, the planting closes quickly."],
+    care: ["Häufiger auf den Stock setzen, damit die Zielhöhe bleibt. Sichtachsen und soziale Kontrolle prüfen.", "Coppice more often to keep the target height. Check sight lines and social safety."]
+  },
+  balanced: {
+    space: ["Wilder Charakter mit niedrigem Saum am Weg. Sichtachsen zum Dach bleiben, wenn die Zielhöhe gehalten wird.", "Wild character with a low fringe along the path. Views to the roof stay open when the target height is kept."],
+    eco: ["Gute Mischung aus Blüte, Früchten und Deckung.", "A good mix of flowers, fruit and cover."],
+    care: ["Abschnittsweise verjüngen, alle 2–3 Jahre ein Teil jeder Insel.", "Rejuvenate in parts: one part of each island every 2–3 years."]
+  },
+  open: {
+    space: ["Lichte Inseln mit breitem Saum. Gute Übersicht und soziale Kontrolle, das Dach ist fast überall sichtbar.", "Light islands with a wide fringe. Good overview and social safety, the roof is visible almost everywhere."],
+    eco: ["Mehr Licht für Saum und Bodendecker, weniger Deckung für Tiere.", "More light for fringe and ground cover, less cover for animals."],
+    care: ["Der Bestand schließt langsamer; mehr Unkrautpflege in den ersten Jahren.", "The planting closes more slowly; more weed control in the first years."]
+  }
+};
+const VP_ROOT = {
+  fll: { L: 12, S: 12, name: ["FLL-Minimum (12 m³)", "FLL minimum (12 m³)"] },
+  bern: { L: 36, S: 24, name: ["Zielgröße Stadt Bern (36 / 24 m³)", "City of Bern target (36 / 24 m³)"] },
+  generous: { L: 50, S: 30, name: ["Großzügig (50 / 30 m³)", "Generous (50 / 30 m³)"] }
+};
+const VP_Q = {
+  fll: {
+    space: ["Nur der Mindeststandard. Für Großbäume mit 12–13 m Krone ist das langfristig knapp.", "Minimum standard only. For large trees with 12–13 m crowns this is tight in the long term."],
+    eco: ["Geringere Vitalität und Kühlleistung zu erwarten.", "Expect lower vitality and less cooling."],
+    care: ["Höherer Bewässerungsbedarf, höheres Ausfallrisiko.", "More watering, higher risk of failure."]
+  },
+  bern: {
+    space: ["Zielgröße wie in der Stadt Bern: Großbäume 36 m³, Kleinbäume 24 m³.", "Target as used by the City of Bern: large trees 36 m³, small trees 24 m³."],
+    eco: ["Gute Grundlage für vitale Kronen und Schatten auf dem Platz.", "A good basis for healthy crowns and shade on the square."],
+    care: ["Bewässerung in den ersten Jahren, danach geringer Aufwand.", "Watering in the first years, then low effort."]
+  },
+  generous: {
+    space: ["Großzügiger Wurzelraum, möglichst als durchgehende Baumquartiere unter dem Belag.", "Generous root space, ideally as continuous tree trenches under the paving."],
+    eco: ["Beste Voraussetzung für große, langlebige Kronen und Wasserspeicherung im Boden.", "The best basis for large, long-lived crowns and water storage in the soil."],
+    care: ["Höhere Baukosten, dafür geringeres Ausfallrisiko.", "Higher construction cost, lower risk of failure."]
+  }
+};
+const RB_CHAR = {
+  buei: { name: ["Bodensaurer Buchen-Eichenwald", "Acidic beech-oak forest"],
+    wk: { querob: 0.32, quepet: 0.20, fagsyl: 0.15, betpen: 0.10, sorauc: 0.08, poptre: 0.05, fraaln: 0.05, ilexaq: 0.05 } },
+  eibi: { name: ["Lichter Eichen-Birkenwald", "Open oak-birch forest"],
+    wk: { querob: 0.30, quepet: 0.15, fagsyl: 0.05, betpen: 0.20, sorauc: 0.12, poptre: 0.08, fraaln: 0.05, ilexaq: 0.05 } },
+  bu: { name: ["Buchenbetonter Wald", "Beech-dominated forest"],
+    wk: { querob: 0.20, quepet: 0.15, fagsyl: 0.35, betpen: 0.08, sorauc: 0.07, poptre: 0.03, fraaln: 0.04, ilexaq: 0.08 } }
+};
+const RB_Q = {
+  buei: {
+    space: ["Eichen-Buchen-Wald mit Stechpalme im Unterstand. Nach Jahrzehnten ein geschlossenes, hallenartiges Kronendach.", "Oak-beech forest with holly in the understory. After decades a closed, hall-like canopy."],
+    eco: ["Charakter wie LRT 9190 / 9120: saure, nährstoffarme Böden, artenarme, typische Krautschicht.", "Character as LRT 9190 / 9120: acidic, nutrient-poor soil, a species-poor but typical herb layer."],
+    care: ["Buche in Gruppen pflanzen. In den ersten Jahren 2–3-mal freischneiden.", "Plant beech in groups. Cut back the weeds 2–3 times per year in the first years."]
+  },
+  eibi: {
+    space: ["Lichter Eichen-Birkenwald: schneller grün, offenere Struktur mit Durchblicken.", "Open oak-birch forest: greener sooner, a more open structure with views through."],
+    eco: ["Mehr Pionierarten, viel Licht für Draht-Schmiele und Heidelbeere.", "More pioneer species, plenty of light for wavy hair-grass and bilberry."],
+    care: ["Birken später teilweise entnehmen, damit die Eichen Platz bekommen.", "Later remove part of the birches so the oaks get space."]
+  },
+  bu: {
+    space: ["Dunkler, buchenbetonter Wald mit wenig Unterwuchs.", "Dark, beech-dominated forest with little undergrowth."],
+    eco: ["Starke Beschattung; wenig Licht für die Krautschicht.", "Heavy shade; little light for the herb layer."],
+    care: ["Buche braucht Schutz vor Spätfrost und voller Sonne (Birken-Vorwald).", "Beech needs shelter from late frost and full sun (birch nurse trees)."]
+  }
+};
+const RB_DENS = {
+  forest: { f: 1.0, name: ["Forstlich (100 %)", "Forestry (100 %)"] },
+  reduced: { f: 0.7, name: ["Reduziert (70 %)", "Reduced (70 %)"] },
+  initial: { f: 0.5, name: ["Initial (50 %) + Sukzession", "Initial (50 %) + succession"] }
+};
+
+/* ---------------------------------------------------------------- state */
+let SAVED = null;
+try { SAVED = JSON.parse(document.getElementById("saved-state").textContent); } catch (e) { SAVED = null; }
+function withDefaults(s) {
+  const d = clone(DEFAULTS);
+  if (!s || typeof s !== "object") return d;
+  ["sw", "vp", "rb"].forEach(k => { if (s[k] && typeof s[k] === "object") d[k] = Object.assign(d[k], s[k]); });
+  d.custom = Object.assign({}, s.custom || {});
+  d.meta = Object.assign({}, d.meta, s.meta || {});
+  return d;
+}
+const savedState = withDefaults(SAVED);
+let state = clone(savedState);
+const draft = lsGet(STORE_DRAFT);
+if (draft && draft.state && draft.base === (savedState.meta.savedAt || "")) state = withDefaults(draft.state);
+const ui = Object.assign({ lang: "de", tab: "overview" }, lsGet(STORE_UI) || {});
+LANG = ui.lang === "en" ? "en" : "de";
+const TABS = ["overview", "stadtwald", "vorplatz", "randbereich"];
+const hashTab = (location.hash || "").replace("#", "");
+if (TABS.includes(hashTab)) ui.tab = hashTab;
+if (!TABS.includes(ui.tab)) ui.tab = "overview";
+let artifactNS = null, downloadsNS = null, readOnly = false, busy = false, statusMsg = "";
+const IN_VIEWER = !!(window.claude && typeof window.claude.use === "function");
+const isDirty = () => JSON.stringify(state) !== JSON.stringify(savedState);
+let draftTimer = null;
+function saveDraft() {
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    if (isDirty()) lsSet(STORE_DRAFT, { base: savedState.meta.savedAt || "", state: state });
+    else lsDel(STORE_DRAFT);
+    renderStatus();
+  }, 350);
+}
+
+/* ---------------------------------------------------------------- groundwater heuristics */
+function needFor(gw, kind) {
+  if (gw == null || !isFinite(gw)) return null;
+  const lim = kind === "tree" ? [1.0, 2.0] : [0.8, 1.5];
+  if (gw < lim[0]) return { bad: [1], warn: [2] };
+  if (gw < lim[1]) return { bad: [], warn: [1] };
+  return { bad: [], warn: [] };
+}
+function fitOf(s, need) {
+  if (!need) return "na";
+  if (need.bad.indexOf(s.m) >= 0) return "bad";
+  if (need.warn.indexOf(s.m) >= 0) return "warn";
+  return "ok";
+}
+function eco(items) {
+  const tot = sum(items.map(i => i.n));
+  const share = f => (tot ? sum(items.filter(i => f(sp(i.id), i)).map(i => i.n)) / tot : 0);
+  const live = items.filter(i => i.n > 0);
+  return {
+    tot: tot,
+    native: share(s => s.o === "v" || s.o === "f"),
+    bee: share(s => !!s.bee), bird: share(s => !!s.bird),
+    ever: share(s => s.e === 1) + 0.5 * share(s => s.e === 0.5),
+    fit: share((s, i) => i.fit !== "bad" && i.fit !== "warn"),
+    toxic: new Set(live.filter(i => sp(i.id).t).map(i => i.id)).size,
+    species: new Set(live.map(i => i.id)).size
+  };
+}
+
+/* ---------------------------------------------------------------- computations */
+function compSW(S) {
+  const isl = S.islands.map(i => {
+    const a = Math.max(0, +i.a || 0), e = Math.max(0, +i.e || 0);
+    const B = Math.min(e * S.wB, a);
+    return { id: i.id, a: a, e: e, B: B, A: a - B };
+  });
+  const A = sum(isl.map(i => i.A)), B = sum(isl.map(i => i.B)), T = A + B, edge = sum(isl.map(i => i.e));
+  const base = S.mound ? S.moundH : 0;
+  const gwEff = S.gw + base;
+  const need = needFor(gwEff, "shrub");
+  const shrubs = S.shrubs.map(x => ({ id: x.id, s: x.s, n: Math.round(A * S.dens * x.s), fit: fitOf(sp(x.id), need) }));
+  const nShrub = sum(shrubs.map(x => x.n));
+  const sol = Math.min(nShrub, isl.filter(i => i.a > 0).length * S.solPer);
+  const gA = S.gA.map(x => ({ id: x.id, s: x.s, n: Math.round(A * S.gcA * x.s), fit: fitOf(sp(x.id), need) }));
+  const gB = S.gB.map(x => ({ id: x.id, s: x.s, n: Math.round(B * S.gcB * x.s), fit: fitOf(sp(x.id), need) }));
+  const geo = S.geo.map(x => ({ id: x.id, s: x.s, n: Math.round(T * S.geoShare * S.geoDens * x.s), fit: fitOf(sp(x.id), need) }));
+  const maxMix = Math.max(0, ...S.shrubs.filter(x => x.s > 0).map(x => sp(x.id).h[1]));
+  const H = Math.min(S.target, maxMix || S.target);
+  const d1 = Math.max(0.1, S.path / 2 + S.wB);
+  const Habs = base + H;
+  const yRoof = Habs <= S.eye ? S.eye : S.eye + (Habs - S.eye) * S.roofD / d1;
+  const visible = S.roofH > yRoof;
+  const hMax = Math.max(0, S.eye + (S.roofH - S.eye) * d1 / Math.max(0.1, S.roofD) - base);
+  const warns = [];
+  [["shrubs", tx("Sträucher", "Shrubs")], ["gA", tx("Unterpflanzung Zone A", "Underplanting zone A")], ["gB", tx("Saum Zone B", "Fringe zone B")], ["geo", tx("Geophyten", "Geophytes")]].forEach(([k, lab]) => {
+    const s = sum(S[k].map(x => x.s));
+    if (Math.abs(s - 1) > 0.005) warns.push({ lvl: "bad", t: tx(`Anteile ${lab}: ${pct(s)} statt 100 %.`, `Shares ${lab}: ${pct(s)} instead of 100 %.`) });
+  });
+  if (gwEff < 0.8) warns.push({ lvl: "bad", t: tx("Grundwasser weniger als 0,8 m unter der Pflanzfläche: flache Hügel (30–50 cm) oder mehr nässeverträgliche Arten.", "Groundwater less than 0.8 m below the planting: use low mounds (30–50 cm) or more wet-tolerant species.") });
+  const badSp = shrubs.filter(x => x.n > 0 && x.fit === "bad").map(x => abbr(sp(x.id).b));
+  if (badSp.length) warns.push({ lvl: "bad", t: tx("Nicht geeignet bei diesem Grundwasserstand: ", "Not suitable at this groundwater level: ") + badSp.join(", ") });
+  const warnSp = shrubs.filter(x => x.n > 0 && x.fit === "warn").map(x => abbr(sp(x.id).b));
+  if (warnSp.length) warns.push({ lvl: "warn", t: tx("Nässe kritisch prüfen: ", "Check wet soil: ") + warnSp.join(", ") });
+  if (!visible) warns.push({ lvl: "warn", t: tx(`Dachsicht verdeckt: Sträucher höchstens ${nf(hMax, 1)} m halten oder den Saum verbreitern.`, `Roof view blocked: keep shrubs at most ${nf(hMax, 1)} m or widen the fringe.`) });
+  const ecoAll = eco(shrubs.concat(gA, gB));
+  return { isl, A, B, T, edge, base, gwEff, need, shrubs, nShrub, sol, gA, gB, geo, maxMix, H, d1, Habs, yRoof, visible, hMax,
+    mulch: [A * S.mulchA[0] + B * S.mulchB[0], A * S.mulchA[1] + B * S.mulchB[1]], topsoil: A * S.topA + B * S.topB,
+    nGA: sum(gA.map(x => x.n)), nGB: sum(gB.map(x => x.n)), nGeo: sum(geo.map(x => x.n)), eco: ecoAll, ecoShrub: eco(shrubs), warns };
+}
+function compVP(S) {
+  const avail = S.gw - S.clear;
+  let pit = S.pit;
+  if (S.auto) pit = Math.max(1.0, Math.min(S.pit, avail));
+  const conflict = pit > avail + 1e-9;
+  const need = needFor(S.gw, "tree");
+  const trees = S.trees.map(t => {
+    const s = sp(t.id), g = Math.max(0, +t.grate || 0);
+    const pitV = g * pit, ext = Math.max(0, (+t.vol || 0) - pitV), extA = S.ext > 0 ? ext / S.ext : 0;
+    const proj = Math.PI * Math.pow((+t.c || 0) / 2, 2);
+    const galkMax = s.c ? s.c[1] : null;
+    return Object.assign({}, t, { pitV, ext, extA, proj, totV: pitV + ext, fit: fitOf(s, need), belowMin: pitV + ext < S.fll, overCrown: galkMax != null && t.c > galkMax + 1e-9 });
+  });
+  const n = sum(trees.map(t => t.n));
+  const canopy = sum(trees.map(t => t.n * t.proj));
+  const warns = [];
+  if (conflict) warns.push({ lvl: "bad", t: tx(`Pflanzgrube (${nf(pit, 2)} m) reicht bis in den Sicherheitsabstand zum Grundwasser (MHGW ${nf(S.gw, 2)} m, Abstand ${nf(S.clear, 2)} m).`, `The pit (${nf(pit, 2)} m) reaches into the safety distance to groundwater (MHGW ${nf(S.gw, 2)} m, distance ${nf(S.clear, 2)} m).`) });
+  else if (S.auto && pit < S.pit - 1e-9) warns.push({ lvl: "warn", t: tx(`Grubentiefe wegen Grundwasser auf ${nf(pit, 2)} m reduziert. Die Erweiterung unter dem Belag wird größer.`, `Pit depth reduced to ${nf(pit, 2)} m because of groundwater. The extension under the paving grows.`) });
+  trees.forEach(t => {
+    if (t.n <= 0) return;
+    const s = sp(t.id);
+    if (t.belowMin) warns.push({ lvl: "bad", t: tx(`${abbr(s.b)}: Wurzelraum unter dem FLL-Minimum (${nf(S.fll)} m³).`, `${abbr(s.b)}: root space below the FLL minimum (${nf(S.fll)} m³).`) });
+    if (s.galk === "r") warns.push({ lvl: "warn", t: tx(`${abbr(s.b)}: GALK „geeignet mit Einschränkungen“, nicht für befestigte Flächen.`, `${abbr(s.b)}: GALK "suitable with restrictions", not for paved areas.`) });
+    if (t.overCrown) warns.push({ lvl: "warn", t: tx(`${abbr(s.b)}: Modellkrone ${nf(t.c, 1)} m liegt über dem GALK-Wert (${s.c[0]}–${s.c[1]} m).`, `${abbr(s.b)}: model crown ${nf(t.c, 1)} m is above the GALK value (${s.c[0]}–${s.c[1]} m).`) });
+    if (t.fit === "bad") warns.push({ lvl: "bad", t: tx(`${abbr(s.b)}: verträgt den hohen Grundwasserstand schlecht.`, `${abbr(s.b)}: does not tolerate the high groundwater well.`) });
+    else if (t.fit === "warn") warns.push({ lvl: "warn", t: tx(`${abbr(s.b)}: Staunässe prüfen.`, `${abbr(s.b)}: check waterlogging.`) });
+  });
+  return { pit, avail, conflict, need, trees, n, canopy, cover: S.plaza > 0 ? canopy / S.plaza : 0,
+    grateA: sum(trees.map(t => t.n * t.grate)), B1: sum(trees.map(t => t.n * t.pitV)), B2: sum(trees.map(t => t.n * t.ext)),
+    extArea: sum(trees.map(t => t.n * t.extA)), nLarge: sum(trees.filter(t => t.g === "L").map(t => t.n)),
+    okRoot: n ? sum(trees.filter(t => !t.belowMin).map(t => t.n)) / n : 0,
+    eco: eco(trees.map(t => ({ id: t.id, n: t.n, fit: t.fit }))), warns };
+}
+function compRB(S) {
+  const saum = S.mantel * S.saumShare, wmA = S.mantel - saum, lawn = S.pathLen * S.stripW, core = S.total - S.mantel - lawn - S.feucht;
+  const f = (RB_DENS[S.dens] || RB_DENS.forest).f;
+  const nCore = needFor(S.gw, "tree"), nWet = needFor(0.4, "tree"), nShrub = needFor(S.gw, "shrub"), nWetH = needFor(0.4, "shrub");
+  const zone = (list, area, need) => list.map(x => ({ id: x.id, s: x.s, d: x.d, n: Math.round(Math.max(0, area) * x.s * x.d * f / 10000), fit: fitOf(sp(x.id), need) }));
+  const wk = zone(S.wk, core, nCore), fb = zone(S.fb, S.feucht, nWet), wm = zone(S.wm, wmA, nShrub);
+  const hk = S.hk.map(x => ({ id: x.id, s: x.s, n: Math.round(Math.max(0, core) * S.initShare * S.initDens * x.s), fit: fitOf(sp(x.id), nShrub) }));
+  const hf = S.hf.map(x => ({ id: x.id, s: x.s, n: Math.round(Math.max(0, S.feucht) * S.initShare * S.initDens * x.s), fit: fitOf(sp(x.id), nWetH) }));
+  const crit = S.speed === "100" ? 7.5 : 4.5;
+  const treeStart = S.wSaum + S.wStrauch;
+  const limit = S.guard ? S.W : crit;
+  const okTree = treeStart >= limit - 1e-9;
+  const nWK = sum(wk.map(x => x.n)), nFB = sum(fb.map(x => x.n)), nWM = sum(wm.map(x => x.n));
+  const woodyArea = Math.max(0, core) + S.feucht + wmA;
+  const charShare = nWK ? sum(wk.filter(x => ["querob", "quepet", "fagsyl"].indexOf(x.id) >= 0).map(x => x.n)) / nWK : 0;
+  const warns = [];
+  if (core < 0) warns.push({ lvl: "bad", t: tx("Die Zonen sind größer als die Gesamtfläche.", "The zones are larger than the total area.") });
+  [["wk", "Waldkern"], ["fb", "Feuchtbereich"], ["wm", "Waldmantel"], ["hk", tx("Krautschicht Waldkern", "Herb layer core")], ["hf", tx("Krautschicht Feuchtbereich", "Herb layer moist zone")]].forEach(([k, lab]) => {
+    const s = sum(S[k].map(x => x.s));
+    if (Math.abs(s - 1) > 0.005) warns.push({ lvl: "bad", t: tx(`Anteile ${lab}: ${pct(s)} statt 100 %.`, `Shares ${lab}: ${pct(s)} instead of 100 %.`) });
+  });
+  if (!okTree) warns.push({ lvl: "bad", t: S.guard
+    ? tx(`Bäume beginnen ${nf(treeStart, 1)} m hinter der Leitplanke, innerhalb des Wirkungsbereichs W = ${nf(S.W, 1)} m.`, `Trees start ${nf(treeStart, 1)} m behind the guardrail, inside the working width W = ${nf(S.W, 1)} m.`)
+    : tx(`Ohne Leitplanke: Bäume beginnen ${nf(treeStart, 1)} m vom Fahrbahnrand, innerhalb des kritischen Abstands (${nf(crit, 1)} m).`, `No guardrail: trees start ${nf(treeStart, 1)} m from the road edge, inside the critical distance (${nf(crit, 1)} m).`) });
+  const badCore = wk.filter(x => x.n > 0 && x.fit === "bad").map(x => abbr(sp(x.id).b));
+  if (badCore.length) warns.push({ lvl: "bad", t: tx("Waldkern: bei diesem Grundwasserstand ungeeignet – ", "Core: not suitable at this groundwater level – ") + badCore.join(", ") + tx(". Feuchtbereich vergrößern?", ". Enlarge the moist zone?") });
+  const warnCore = wk.filter(x => x.n > 0 && x.fit === "warn").map(x => abbr(sp(x.id).b));
+  if (warnCore.length) warns.push({ lvl: "warn", t: tx("Waldkern: Staunässe prüfen – ", "Core: check waterlogging – ") + warnCore.join(", ") });
+  const badWet = fb.filter(x => x.n > 0 && x.fit !== "ok").map(x => abbr(sp(x.id).b));
+  if (badWet.length) warns.push({ lvl: "warn", t: tx("Feuchtbereich: Art verträgt Nässe nur bedingt – ", "Moist zone: species tolerates wet soil only partly – ") + badWet.join(", ") });
+  return { saum, wmA, lawn, core, f, wk, fb, wm, hk, hf, crit, treeStart, limit, okTree, nWK, nFB, nWM, woody: nWK + nFB + nWM,
+    dens: woodyArea > 0 ? (nWK + nFB + nWM) / woodyArea * 10000 : 0, charShare,
+    seedSaum: saum * S.seedSaum / 1000, seedLawn: lawn * S.seedLawn / 1000,
+    start: S.startArea > 0 ? Math.round(Math.max(0, core) / S.startArea) : 0, topsoil: S.total * S.topsoil,
+    edgeLen: (S.wSaum + S.wStrauch + S.wBaum) > 0 ? S.mantel / (S.wSaum + S.wStrauch + S.wBaum) : 0,
+    nHK: sum(hk.map(x => x.n)), nHF: sum(hf.map(x => x.n)), eco: eco(wk.concat(fb, wm)), warns };
+}
+function compAll() { return { sw: compSW(state.sw), vp: compVP(state.vp), rb: compRB(state.rb) }; }
+
+/* ---------------------------------------------------------------- quantities (also CSV) */
+function qualSW(id) { return id === "ilexaq" ? "mB 60–80" : "Str. 2xv oB 100–150"; }
+function qualRB(zone, id) {
+  const s = sp(id);
+  if (id === "ilexaq" || id === "cytsco") return "Co. 40–60 cm";
+  if (s.l === "shrub") return "Str. 2xv oB 60–100";
+  if (zone === "wm") return "Heister 2xv oB 100–150";
+  if (["querob", "quepet", "fagsyl"].indexOf(id) >= 0) return tx("Forstpflanze, verschult, 50–80 cm", "Forest plant, transplanted, 50–80 cm");
+  return tx("Forstpflanze, verschult, 80–120 cm", "Forest plant, transplanted, 80–120 cm");
+}
+const PCS = () => tx("St.", "pcs");
+function rowsSW(R) {
+  const rows = [], zA = tx("Zone A – Gehölzkern", "Zone A – shrub core"), zB = tx("Zone B – Saum", "Zone B – fringe");
+  R.shrubs.forEach(x => rows.push({ zone: zA, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: qualSW(x.id) }));
+  rows.push({ zone: zA, b: tx("davon Solitäre", "of which solitaires"), de: "Cornus mas / Corylus avellana", q: R.sol, u: PCS(), note: "Sol. 3xv mB 150–200" });
+  R.gA.forEach(x => rows.push({ zone: tx("Zone A – Unterpflanzung", "Zone A – underplanting"), b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: x.id.indexOf("dry") === 0 || x.id === "athfil" ? "P11 / 1 l" : "P9" }));
+  R.gB.forEach(x => rows.push({ zone: zB, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: "P9" }));
+  R.geo.forEach(x => rows.push({ zone: tx("Geophyten (A + B)", "Geophytes (A + B)"), b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: x.id === "allurs" ? tx("Zwiebeln", "Bulbs") : tx("Rhizome", "Rhizomes") }));
+  rows.push({ zone: tx("Material", "Material"), b: tx("Holzhäckselmulch", "Wood chip mulch"), de: "", q: R.mulch, u: "m³", note: "min–max" });
+  rows.push({ zone: tx("Material", "Material"), b: tx("Oberboden (Vegetationstragschicht)", "Topsoil (vegetation layer)"), de: "", q: R.topsoil, u: "m³", note: "DIN 18915" });
+  rows.push({ zone: tx("Material", "Material"), b: tx("Stahlkante Weg / Pflanzfläche", "Steel edge path / planting"), de: "", q: R.edge, u: tx("lfm", "lm"), note: "" });
+  return rows;
+}
+function rowsVP(R) {
+  const rows = [], z = tx("Bäume", "Trees"), m = tx("Baumstandort", "Tree site");
+  R.trees.forEach(t => rows.push({ zone: z, b: sp(t.id).b, de: sp(t.id).de, q: t.n, u: PCS(), note: "Hochstamm, 4xv, mDB, StU " + (t.g === "L" ? "25–30" : "20–25") }));
+  rows.push({ zone: m, b: tx("Baumroste (eigene Form)", "Tree grates (own shape)"), de: "", q: R.n, u: PCS(), note: tx("Fläche gesamt ", "Total area ") + nf(R.grateA, 1) + " m²" });
+  rows.push({ zone: m, b: tx("Ringfundamente Baumrost", "Ring foundations for grates"), de: "", q: R.n, u: PCS(), note: "C 35/45" });
+  rows.push({ zone: m, b: tx("Baumsubstrat Bauweise 1 (Grube)", "Tree substrate Bauweise 1 (pit)"), de: "", q: R.B1, u: "m³", note: "FLL Teil 2:2010" });
+  rows.push({ zone: m, b: tx("Baumsubstrat Bauweise 2 (unter Belag)", "Tree substrate Bauweise 2 (under paving)"), de: "", q: R.B2, u: "m³", note: "FLL Teil 2:2010" });
+  rows.push({ zone: m, b: tx("Fläche Wurzelraumerweiterung", "Root space extension area"), de: "", q: R.extArea, u: "m²", note: "" });
+  rows.push({ zone: m, b: tx("Bewässerungssets DN 80", "Irrigation sets DN 80"), de: "", q: R.n, u: PCS(), note: "" });
+  rows.push({ zone: m, b: tx("Unterflur-Ballenverankerung", "Underground root-ball anchoring"), de: "", q: R.n, u: PCS(), note: "" });
+  rows.push({ zone: m, b: tx("Stammschutzbügel (Option)", "Stem protection bars (option)"), de: "", q: R.n, u: PCS(), note: "" });
+  return rows;
+}
+function rowsRB(R) {
+  const rows = [];
+  [["wk", "Waldkern"], ["fb", "Feuchtbereich"], ["wm", "Waldmantel"]].forEach(([k, lab]) => R[k].forEach(x => rows.push({ zone: lab, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: qualRB(k, x.id) })));
+  [["hk", tx("Krautschicht Waldkern", "Herb layer core")], ["hf", tx("Krautschicht Feuchtbereich", "Herb layer moist zone")]].forEach(([k, lab]) => R[k].forEach(x => rows.push({ zone: lab, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: "P9 / P11" })));
+  const mat = tx("Material", "Material");
+  rows.push({ zone: mat, b: tx("Regiosaatgut UG 1 – Saum / Waldrand", "Regional seed UG 1 – fringe / forest edge"), de: "", q: R.seedSaum, u: "kg", note: "" });
+  rows.push({ zone: mat, b: tx("Regiosaatgut UG 1 – Rasen", "Regional seed UG 1 – lawn"), de: "", q: R.seedLawn, u: "kg", note: "" });
+  rows.push({ zone: mat, b: tx("Startbäume Quercus (Option)", "Start trees Quercus (option)"), de: "", q: R.start, u: PCS(), note: "Heister 3xv mB 200–250" });
+  rows.push({ zone: mat, b: tx("Oberboden (Option)", "Topsoil (option)"), de: "", q: R.topsoil, u: "m³", note: tx("Bodenkonzept offen", "Soil concept open") });
+  return rows;
+}
+function qtyText(q, u) {
+  if (Array.isArray(q)) return nf(q[0], 1) + "–" + nf(q[1], 1);
+  const d = u === "kg" ? 2 : (u === "m³" || u === "m²") ? 1 : 0;
+  return nf(q, d);
+}
+
+/* ---------------------------------------------------------------- svg helpers */
+function frame(xmin, xmax, ymin, ymax, W) {
+  W = W || 760;
+  const padL = 34, padR = 16, padT = 16, padB = 30;
+  const s = Math.min((W - padL - padR) / (xmax - xmin), 300 / (ymax - ymin));
+  const h = (ymax - ymin) * s + padT + padB;
+  return { s, W, h, X: x => padL + (x - xmin) * s, Y: y => padT + (ymax - y) * s, xmin, xmax, ymin, ymax, padB };
+}
+const R2 = v => Math.round(v * 10) / 10;
+const rect = (x, y, w, h, c) => `<rect x="${R2(x)}" y="${R2(y)}" width="${R2(Math.max(0, w))}" height="${R2(Math.max(0, h))}" class="${c}"/>`;
+const ln = (x1, y1, x2, y2, c) => `<line x1="${R2(x1)}" y1="${R2(y1)}" x2="${R2(x2)}" y2="${R2(y2)}" class="${c}"/>`;
+const txt = (x, y, t, c, anchor) => `<text x="${R2(x)}" y="${R2(y)}" class="${c || "s-txt"}" text-anchor="${anchor || "start"}">${esc(t)}</text>`;
+const ell = (cx, cy, rx, ry, c) => `<ellipse cx="${R2(cx)}" cy="${R2(cy)}" rx="${R2(Math.max(0, rx))}" ry="${R2(Math.max(0, ry))}" class="${c}"/>`;
+function scaleBar(F) {
+  const m = F.s * 5;
+  const x = F.X(F.xmin) , y = F.h - 10;
+  return rect(x, y - 3, m, 3, "s-bar") + txt(x + m + 6, y, "5 m");
+}
+function svg(F, inner, label) {
+  return `<svg viewBox="0 0 ${F.W} ${R2(F.h)}" role="img" aria-label="${esc(label)}" xmlns="http://www.w3.org/2000/svg">${inner}${scaleBar(F)}</svg>`;
+}
+
+/* section: Mini-Stadtwaldgarten */
+function secSW(S, R) {
+  const P = Math.max(0.5, S.path), wB = Math.max(0, S.wB), wA = Math.max(1, S.wA), half = P / 2, isl = half + wB + wA;
+  const xmin = -isl - 1, xmax = Math.max(S.roofD + 4, isl + 2);
+  const top = Math.max(S.roofH + 1.5, R.base + R.maxMix + 1, 5), bottom = -(Math.max(S.gw, 1) + 0.8);
+  const F = frame(xmin, xmax, bottom, top), X = F.X, Y = F.Y;
+  let g = rect(X(xmin), Y(0), X(xmax) - X(xmin), Y(bottom) - Y(0), "s-ground");
+  g += ln(X(xmin), Y(-S.gw), X(xmax), Y(-S.gw), "s-gw") + txt(X(xmax) - 4, Y(-S.gw) - 4, `MHGW −${nf(S.gw, 2)} m`, "s-txt", "end");
+  g += ln(X(xmin), Y(0), X(xmax), Y(0), "s-gline");
+  g += rect(X(-half), Y(0.08), X(half) - X(-half), Y(0) - Y(0.08), "s-pave");
+  const list = state.sw.shrubs.filter(x => x.s > 0).slice().sort((a, b) => b.s - a.s);
+  [1, -1].forEach(dir => {
+    const zx = v => X(dir * v);
+    const b0 = R.base;
+    if (S.mound) {
+      const a0 = half, a1 = isl;
+      g += `<polygon points="${R2(zx(a0))},${R2(Y(0))} ${R2(zx(a0 + 0.6))},${R2(Y(b0))} ${R2(zx(a1 - 0.6))},${R2(Y(b0))} ${R2(zx(a1))},${R2(Y(0))}" class="s-ground"/>`;
+    }
+    const xB0 = Math.min(zx(half), zx(half + wB));
+    g += rect(xB0, Y(b0 + 0.5), Math.abs(zx(half + wB) - zx(half)), Y(b0) - Y(b0 + 0.5), "s-low");
+    const nb = Math.max(3, Math.round(wA / 1.2));
+    for (let k = 0; k < nb; k++) {
+      const it = list.length ? list[k % list.length] : null;
+      const h = it ? Math.min(sp(it.id).h[1], R.H) : R.H;
+      const cx = dir * (half + wB + (k + 0.5) * wA / nb);
+      g += ell(X(cx), Y(b0 + h / 2), (wA / nb) * 0.62 * F.s, (h / 2) * F.s, k % 2 ? "s-shrub2" : "s-shrub");
+    }
+    g += ln(zx(half + wB), Y(b0 + R.maxMix), zx(isl), Y(b0 + R.maxMix), "s-ghost");
+  });
+  g += txt(X(half + wB) + 2, Y(R.base + R.maxMix) - 4, tx(`ohne Schnitt bis ~${nf(R.maxMix, 1)} m`, `uncut up to ~${nf(R.maxMix, 1)} m`));
+  g += txt(X(0), Y(0) + 14, tx(`Weg ${nf(P, 2)} m`, `path ${nf(P, 2)} m`), "s-txt", "middle");
+  g += txt(X(half + wB / 2), Y(R.base + 0.5) - 4, tx("Saum", "fringe"), "s-txt", "middle");
+  g += txt(X(half + wB + wA / 2), Y(R.base + R.H) - 6, tx(`Zielhöhe ${nf(R.H, 1)} m`, `target ${nf(R.H, 1)} m`), "s-txt-ink", "middle");
+  // viewer
+  const hx = X(0);
+  g += `<circle cx="${R2(hx)}" cy="${R2(Y(S.eye))}" r="${R2(Math.max(2.5, 0.16 * F.s))}" class="s-person"/>` + ln(hx, Y(S.eye - 0.18), hx, Y(0.85), "s-person") + ln(hx, Y(0.85), hx - 0.25 * F.s, Y(0), "s-person") + ln(hx, Y(0.85), hx + 0.25 * F.s, Y(0), "s-person");
+  // roof
+  g += rect(X(S.roofD), Y(S.roofH + 0.35), X(xmax) - X(S.roofD), 0.35 * F.s, "s-roof");
+  [0.8, 3.5].forEach(o => { if (S.roofD + o < xmax) g += ln(X(S.roofD + o), Y(S.roofH), X(S.roofD + o), Y(0), "s-col"); });
+  g += txt(X(S.roofD), Y(S.roofH + 0.35) - 6, tx(`Stationsdach ${nf(S.roofH, 1)} m`, `station roof ${nf(S.roofH, 1)} m`), "s-txt-ink");
+  // sight lines
+  const yAt = x => S.eye + (R.Habs - S.eye) * x / R.d1;
+  if (R.Habs > S.eye) g += ln(X(0), Y(S.eye), X(S.roofD), Y(Math.min(top, yAt(S.roofD))), "s-thin");
+  g += ln(X(0), Y(S.eye), X(S.roofD), Y(S.roofH), R.visible ? "s-ok" : "s-bad");
+  return svg(F, g, tx("Schnitt Mini-Stadtwaldgarten", "Section mini urban forest garden"));
+}
+
+/* section: Vorplatz */
+function secVP(S, R) {
+  let items = R.trees.filter(t => t.n > 0);
+  if (!items.length) items = R.trees;
+  const gap = 3, pave = 0.4;
+  let x = 0;
+  const pos = items.map(t => {
+    const gs = Math.sqrt(Math.max(0, t.grate)), Sx = Math.sqrt(t.extA + gs * gs), w = Math.max(t.c, Sx, gs, 2);
+    const p = { t, cx: x + w / 2, gs, Sx };
+    x += w + gap;
+    return p;
+  });
+  const xmin = -1.5, xmax = Math.max(4, x - gap + 1.5);
+  const top = Math.max(5, ...items.map(t => t.h)) + 1.2;
+  const bottom = -(Math.max(S.gw + 0.5, R.pit + 0.4, pave + S.ext + 0.4));
+  const F = frame(xmin, xmax, bottom, top), X = F.X, Y = F.Y;
+  let g = rect(X(xmin), Y(0), X(xmax) - X(xmin), Y(bottom) - Y(0), "s-ground");
+  g += rect(X(xmin), Y(-(S.gw - S.clear)), X(xmax) - X(xmin), S.clear * F.s, "s-water");
+  g += rect(X(xmin), Y(0), X(xmax) - X(xmin), pave * F.s, "s-pave");
+  pos.forEach(p => {
+    const { t, cx, gs, Sx } = p, s = sp(t.id);
+    g += rect(X(cx - Sx / 2), Y(-pave), Sx * F.s, S.ext * F.s, "s-ext");
+    g += rect(X(cx - gs / 2), Y(0), gs * F.s, R.pit * F.s, R.conflict ? "s-pit-bad" : "s-pit");
+    g += ln(X(cx - gs / 2), Y(0), X(cx + gs / 2), Y(0), "s-grate");
+    g += ln(X(cx), Y(0), X(cx), Y(S.cb + 0.5), "s-trunk");
+    g += ell(X(cx), Y((S.cb + t.h) / 2), (t.c / 2) * F.s, ((t.h - S.cb) / 2) * F.s, "s-crown");
+    g += txt(X(cx), Y(t.h) - 6, `${abbr(s.b)} ×${t.n}`, "s-txt-ink", "middle");
+    g += txt(X(cx), Y(-pave - S.ext) + 13, `${nf(t.totV, 0)} m³`, "s-txt", "middle");
+  });
+  g += ln(X(xmin), Y(0), X(xmax), Y(0), "s-gline");
+  g += ln(X(xmin), Y(-S.gw), X(xmax), Y(-S.gw), "s-gw") + txt(X(xmax) - 4, Y(-S.gw) + 13, `MHGW −${nf(S.gw, 2)} m`, "s-txt", "end");
+  return svg(F, g, tx("Schnitt Vorplatz-Bäume", "Section plaza trees"));
+}
+
+/* section: Randbereich */
+function secRB(S, R) {
+  const road = 5, L = S.wSaum + S.wStrauch + S.wBaum, coreW = 14;
+  const xmin = -road - 0.5, xmax = L + coreW + 0.5;
+  const top = Math.max(S.hWK, 8) + 1.6, bottom = -(Math.max(S.gw, 1) + 0.8);
+  const F = frame(xmin, xmax, bottom, top), X = F.X, Y = F.Y;
+  let g = rect(X(xmin), Y(0), X(xmax) - X(xmin), Y(bottom) - Y(0), "s-ground");
+  if (S.guard) g += rect(X(0), Y(top - 0.4), S.W * F.s, Y(0) - Y(top - 0.4), "s-w") + txt(X(S.W / 2), Y(top - 0.4) + 12, "W", "s-txt-ink", "middle");
+  g += ln(X(R.crit), Y(top - 0.4), X(R.crit), Y(0), "s-thin") + txt(X(R.crit) + 3, Y(top - 0.4) + 26, tx(`krit. Abstand ${nf(R.crit, 1)} m`, `critical ${nf(R.crit, 1)} m`));
+  g += rect(X(xmin), Y(0.1), X(-0.2) - X(xmin), 0.1 * F.s, "s-road") + txt(X(-road / 2), Y(0) + 14, tx("Fahrbahn", "road"), "s-txt", "middle");
+  if (S.guard) { g += ln(X(-0.1), Y(0), X(-0.1), Y(0.75), "s-col") + rect(X(-0.35), Y(0.75), 0.5 * F.s, 0.3 * F.s, "s-rail"); }
+  g += rect(X(0), Y(0.8), S.wSaum * F.s, 0.8 * F.s, "s-low");
+  const nb = Math.max(2, Math.round(S.wStrauch / 1.3));
+  for (let k = 0; k < nb; k++) {
+    const h = S.hWM * (0.7 + 0.3 * ((k * 37) % 10) / 10);
+    const cx = S.wSaum + (k + 0.5) * S.wStrauch / nb;
+    g += ell(X(cx), Y(h / 2), (S.wStrauch / nb) * 0.62 * F.s, (h / 2) * F.s, k % 2 ? "s-shrub2" : "s-shrub");
+  }
+  const tree = (cx, h, rx) => {
+    const bad = cx < R.limit - 1e-9;
+    return ln(X(cx), Y(0), X(cx), Y(h * 0.45), bad ? "s-trunk-bad" : "s-trunk") + ell(X(cx), Y(h * 0.68), rx * F.s, h * 0.32 * F.s, "s-crown");
+  };
+  const hBM = Math.min(S.hWK * 0.7, 12);
+  for (let cx = S.wSaum + S.wStrauch + 0.3; cx < L; cx += 2.5) g += tree(cx, hBM, 1.4);
+  for (let cx = L + 1.5; cx < xmax - 1; cx += 3) g += tree(cx, S.hWK, 2.0);
+  g += ln(X(xmin), Y(0), X(xmax), Y(0), "s-gline");
+  g += ln(X(0), Y(-S.gw), X(xmax), Y(-S.gw), "s-gw") + txt(X(xmax) - 4, Y(-S.gw) + 13, `MHGW −${nf(S.gw, 2)} m`, "s-txt", "end");
+  const lab = [[S.wSaum / 2, "Saum"], [S.wSaum + S.wStrauch / 2, tx("Strauchmantel", "shrub mantle")], [S.wSaum + S.wStrauch + S.wBaum / 2, tx("Baummantel", "tree mantle")], [L + coreW / 2, "Waldkern"]];
+  lab.forEach(([x0, t]) => { g += txt(X(x0), Y(0) + 14, t, "s-txt", "middle"); });
+  return svg(F, g, tx("Schnitt Randbereich", "Section verge"));
+}
+
+/* ---------------------------------------------------------------- ui pieces */
+function num(path, label, val, step, unit, opt) {
+  opt = opt || {};
+  const id = "in-" + path.replace(/\./g, "-");
+  const v = opt.scale ? r1(val * opt.scale) : val;
+  return `<label class="fld${opt.ex ? " ex" : ""}" for="${id}"><span${opt.ex ? ` data-ex="${esc(tx("Beispielwert", "example value"))}"` : ""}>${esc(label)}</span><span class="in"><input type="number" id="${id}" data-path="${path}"${opt.scale ? ` data-scale="${opt.scale}"` : ""} value="${v}" step="${step}" min="${opt.min != null ? opt.min : 0}"${opt.max != null ? ` max="${opt.max}"` : ""}><em>${esc(unit || "")}</em></span></label>`;
+}
+function chk(path, label, val) {
+  const id = "in-" + path.replace(/\./g, "-");
+  return `<label class="check" for="${id}"><input type="checkbox" id="${id}" data-path="${path}" data-bool="1" data-rr="1"${val ? " checked" : ""}> ${esc(label)}</label>`;
+}
+function sel(path, label, val, options, rr) {
+  const id = "in-" + path.replace(/\./g, "-");
+  return `<label class="fld" for="${id}"><span>${esc(label)}</span><select id="${id}" data-path="${path}" data-str="1"${rr ? ` data-rr="${rr}"` : ""}>${options.map(([k, l]) => `<option value="${esc(k)}"${k === val ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></label>`;
+}
+function inds(list) {
+  return `<div class="inds">${list.map(i => `<div class="ind ${i.st || ""}"><span class="k">${esc(i.k)}</span><span class="v">${esc(i.v)}</span>${i.s ? `<span class="s">${esc(i.s)}</span>` : ""}</div>`).join("")}</div>`;
+}
+const st3 = (v, good, ok) => (v >= good ? "ok" : v >= ok ? "warn" : "bad");
+function qualBlock(q) {
+  return `<div class="qual"><div><h4>${tx("Raum", "Space")}</h4><p>${esc(tx(q.space[0], q.space[1]))}</p></div><div><h4>${tx("Ökologie", "Ecology")}</h4><p>${esc(tx(q.eco[0], q.eco[1]))}</p></div><div><h4>${tx("Pflege", "Care")}</h4><p>${esc(tx(q.care[0], q.care[1]))}</p></div></div>`;
+}
+function flagChips(id, fit) {
+  const s = sp(id), out = [];
+  if (fit === "bad") out.push(`<span class="chip bad">${tx("ungeeignet bei GW", "unsuitable for GW")}</span>`);
+  else if (fit === "warn") out.push(`<span class="chip warn">${tx("Nässe prüfen", "check wetness")}</span>`);
+  if (s.o && s.o !== "v" && s.o !== "f") out.push(`<span class="chip">${esc(tx(ORIGINS[s.o][0], ORIGINS[s.o][1]))}</span>`);
+  if (s.t) out.push(`<span class="chip">${tx("giftig", "toxic")}</span>`);
+  if (s.th) out.push(`<span class="chip">${tx("Dornen", "thorns")}</span>`);
+  if (s.e === 1) out.push(`<span class="chip info">${tx("immergrün", "evergreen")}</span>`);
+  if (s.galk === "r") out.push(`<span class="chip warn">GALK ${tx("mit Einschränkungen", "restricted")}</span>`);
+  if (s.galk === "t") out.push(`<span class="chip">GALK ${tx("im Test", "in test")}</span>`);
+  if (s.galk === "g") out.push(`<span class="chip ok">GALK ${tx("gut geeignet", "very suitable")}</span>`);
+  if (s.custom) out.push(`<span class="chip info">${tx("eigene Art", "custom")}</span>`);
+  return `<div class="chips">${out.join("")}</div>`;
+}
+const DEF_DENS = { tree1: 6000, tree2: 3500, pioneer: 3000, shrub: 6667, street: 0 };
+function listTable(ak, lk, cfg) {
+  const L = state[ak][lk];
+  const rows = L.map((x, i) => {
+    const s = sp(x.id), p = `${ak}.${lk}.${i}`, pid = p.replace(/\./g, "-");
+    return `<tr><td><span class="bot">${esc(s.b)}</span><span class="de">${esc(s.de)}</span></td>
+<td class="hide-sm">${esc(layerName(s.l))}</td>
+<td class="num"><input type="number" id="in-${pid}-s" data-path="${p}.s" data-scale="100" value="${r1(x.s * 100)}" step="1" min="0" max="100" aria-label="${tx("Anteil", "Share")} ${esc(s.b)}"></td>
+${cfg.dens ? `<td class="num"><input type="number" id="in-${pid}-d" data-path="${p}.d" value="${x.d}" step="100" min="0" aria-label="${tx("Dichte", "Density")} ${esc(s.b)}"></td>` : ""}
+<td class="num" id="n-${pid}">–</td><td id="f-${pid}"></td>
+<td><button type="button" class="x" data-act="rm" data-list="${ak}.${lk}" data-i="${i}" aria-label="${tx("Entfernen", "Remove")} ${esc(s.b)}">×</button></td></tr>`;
+  }).join("");
+  const opts = Object.entries(allCat()).filter(([id, s]) => cfg.layers.indexOf(s.l) >= 0 && !L.some(x => x.id === id))
+    .sort((a, b) => a[1].b.localeCompare(b[1].b)).map(([id, s]) => `<option value="${esc(id)}">${esc(s.b)} – ${esc(s.de)}</option>`).join("");
+  const lid = `${ak}-${lk}`;
+  return `<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Art", "Species")}</th><th class="hide-sm">${tx("Schicht", "Layer")}</th><th class="num">${tx("Anteil %", "Share %")}</th>${cfg.dens ? `<th class="num">${tx("Dichte / ha", "Density / ha")}</th>` : ""}<th class="num">${tx("Stück", "Pcs")}</th><th>${tx("Hinweise", "Notes")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+<div class="listtools"><span class="listsum" id="sum-${lid}">–</span>
+<span class="addrow"><button type="button" class="btn sm" data-act="norm" data-list="${ak}.${lk}">${tx("Auf 100 % normieren", "Normalize to 100 %")}</button>
+<select id="add-${lid}" aria-label="${tx("Art hinzufügen", "Add species")}"><option value="">${tx("Art hinzufügen …", "Add species …")}</option>${opts}</select>
+<button type="button" class="btn sm" data-act="add" data-list="${ak}.${lk}">${tx("Hinzufügen", "Add")}</button></span>
+<details class="custom"><summary>${tx("Eigene Art anlegen", "Create a custom species")}</summary><div class="grid">
+<label>${tx("Botanischer Name", "Botanical name")}<input type="text" id="cu-${lid}-b"></label>
+<label>${tx("Deutscher Name", "German name")}<input type="text" id="cu-${lid}-de"></label>
+<label>${tx("Schicht", "Layer")}<select id="cu-${lid}-l">${cfg.layers.map(l => `<option value="${l}">${esc(layerName(l))}</option>`).join("")}</select></label>
+<label>${tx("Max. Höhe (m)", "Max. height (m)")}<input type="number" id="cu-${lid}-h" value="5" step="0.5" min="0"></label>
+<label>${tx("Verträgt Nässe", "Tolerates wet soil")}<select id="cu-${lid}-m"><option value="1">${tx("gering", "low")}</option><option value="2" selected>${tx("mittel", "medium")}</option><option value="3">${tx("hoch", "high")}</option></select></label>
+<label>${tx("Herkunft", "Origin")}<select id="cu-${lid}-o">${Object.keys(ORIGINS).map(o => `<option value="${o}">${esc(tx(ORIGINS[o][0], ORIGINS[o][1]))}</option>`).join("")}</select></label>
+<label class="check"><input type="checkbox" id="cu-${lid}-t"> ${tx("giftig", "toxic")}</label>
+<button type="button" class="btn sm" data-act="custom" data-list="${ak}.${lk}" data-layers="${cfg.layers.join(",")}">${tx("Art anlegen und hinzufügen", "Create and add")}</button>
+</div></details></div>`;
+}
+function fillList(ak, lk, items) {
+  items.forEach((x, i) => {
+    const pid = `${ak}-${lk}-${i}`;
+    const n = document.getElementById("n-" + pid), f = document.getElementById("f-" + pid);
+    if (n) n.textContent = nf(x.n);
+    if (f) f.innerHTML = flagChips(x.id, x.fit);
+  });
+  const el = document.getElementById(`sum-${ak}-${lk}`);
+  if (el) {
+    const s = sum(state[ak][lk].map(x => x.s));
+    el.textContent = tx(`Summe Anteile ${pct(s)} · ${nf(sum(items.map(x => x.n)))} St.`, `Share total ${pct(s)} · ${nf(sum(items.map(x => x.n)))} pcs`);
+    el.className = "listsum" + (Math.abs(s - 1) > 0.005 ? " bad" : "");
+  }
+}
+function matTable(rows) {
+  return `<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Bereich", "Part")}</th><th>${tx("Position", "Item")}</th><th class="num">${tx("Menge", "Qty")}</th><th>${tx("Einheit", "Unit")}</th><th class="hide-sm">${tx("Qualität / Hinweis", "Quality / note")}</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.zone)}</td><td>${r.de ? `<span class="bot">${esc(r.b)}</span><span class="de">${esc(r.de)}</span>` : esc(r.b)}</td><td class="num">${esc(qtyText(r.q, r.u))}</td><td>${esc(r.u)}</td><td class="hide-sm">${esc(r.note)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function warnList(warns) {
+  if (!warns.length) return `<p class="muted">${tx("Keine Konflikte mit den aktuellen Werten.", "No conflicts with the current values.")}</p>`;
+  return `<ul class="warnlist">${warns.map(w => `<li><span class="chip ${w.lvl}">${w.lvl === "bad" ? tx("Konflikt", "Conflict") : tx("Prüfen", "Check")}</span><span>${esc(w.t)}</span></li>`).join("")}</ul>`;
+}
+
+/* ---------------------------------------------------------------- area views */
+function viewSW() {
+  const S = state.sw;
+  const islRows = S.islands.map((i, k) => `<tr><td><input type="text" id="in-sw-islands-${k}-id" data-path="sw.islands.${k}.id" data-str="1" value="${esc(i.id)}" style="width:5em" aria-label="${tx("Insel", "Island")}"></td>
+<td class="num"><input type="number" id="in-sw-islands-${k}-a" data-path="sw.islands.${k}.a" value="${i.a}" step="1" min="0" aria-label="${tx("Fläche", "Area")}"></td>
+<td class="num"><input type="number" id="in-sw-islands-${k}-e" data-path="sw.islands.${k}.e" value="${i.e}" step="1" min="0" aria-label="${tx("Wegkante", "Path edge")}"></td>
+<td><button type="button" class="x" data-act="rmisl" data-i="${k}" aria-label="${tx("Insel entfernen", "Remove island")}">×</button></td></tr>`).join("");
+  return `<section class="area">
+<div class="area-head"><span class="eyebrow">${tx("Bereich 1 · gegenüber dem Vorplatz", "Area 1 · across from the plaza")}</span><h2>Mini-Stadtwaldgarten</h2>
+<p>${tx("5–6 Strauchinseln mit wildem Charakter entlang eines 1,5 m breiten Weges. Die Sträucher bleiben so niedrig, dass das Stationsdach über der Vegetation sichtbar bleibt.", "5–6 shrub islands with a wild character along a 1.5 m wide path. The shrubs stay low enough that the station roof remains visible above the planting.")}</p>
+<div class="chips" id="hd-sw"></div></div>
+<div class="area-grid"><aside class="rail">
+<fieldset><legend>${tx("Charakter", "Character")}</legend>
+${sel("sw.char", tx("Voreinstellung", "Preset"), S.char, Object.keys(SW_CHAR).map(k => [k, tx(SW_CHAR[k].name[0], SW_CHAR[k].name[1])]), "swchar")}
+<p class="hint">${tx("Setzt Dichte, Saumbreite und Zielhöhe. Alle Werte bleiben einzeln änderbar.", "Sets density, fringe width and target height. Every value stays editable.")}</p></fieldset>
+<fieldset><legend>${tx("Pflanzflächen (Inseln)", "Planting areas (islands)")}</legend>
+<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Insel", "Island")}</th><th class="num">m²</th><th class="num">${tx("Wegkante lfm", "Path edge lm")}</th><th></th></tr></thead><tbody>${islRows}</tbody></table></div>
+<button type="button" class="btn sm" data-act="addisl">${tx("Insel hinzufügen", "Add island")}</button>
+<p class="hint">${tx("Beispielwerte – durch Modellwerte ersetzen.", "Example values – replace with values from the model.")}</p>
+<div class="calc" id="calc-sw"></div></fieldset>
+<fieldset><legend>${tx("Dichte & Höhe", "Density & height")}</legend>
+${num("sw.dens", tx("Strauchdichte Zone A", "Shrub density zone A"), S.dens, 0.05, tx("St./m²", "pcs/m²"))}
+${num("sw.wB", tx("Breite Saum (Zone B)", "Fringe width (zone B)"), S.wB, 0.25, "m")}
+${num("sw.target", tx("Zielhöhe mit Schnitt", "Target height with cuts"), S.target, 0.25, "m")}
+${num("sw.solPer", tx("Solitäre je Insel", "Solitaires per island"), S.solPer, 1, tx("St.", "pcs"))}
+${num("sw.gcA", tx("Bodendecker Zone A", "Ground cover zone A"), S.gcA, 0.5, tx("St./m²", "pcs/m²"))}
+${num("sw.gcB", tx("Bodendecker Zone B", "Ground cover zone B"), S.gcB, 0.5, tx("St./m²", "pcs/m²"))}
+${num("sw.geoShare", tx("Geophyten: Flächenanteil", "Geophytes: area share"), S.geoShare, 5, "%", { scale: 100, max: 100 })}
+</fieldset>
+<fieldset><legend>${tx("Grundwasser & Boden", "Groundwater & soil")}</legend>
+${num("sw.gw", tx("MHGW unter Gelände", "MHGW below ground"), S.gw, 0.05, "m", { ex: 1 })}
+${chk("sw.mound", tx("Inseln als flache Hügel", "Islands as low mounds"), S.mound)}
+${num("sw.moundH", tx("Hügelhöhe", "Mound height"), S.moundH, 0.05, "m")}
+${num("sw.topA", tx("Oberboden Zone A", "Topsoil zone A"), S.topA, 0.05, "m")}
+${num("sw.topB", tx("Oberboden Zone B", "Topsoil zone B"), S.topB, 0.05, "m")}
+</fieldset>
+<fieldset><legend>${tx("Sichtachse Stationsdach", "Sight line to station roof")}</legend>
+${num("sw.roofH", tx("Höhe Dachkante", "Roof edge height"), S.roofH, 0.5, "m", { ex: 1 })}
+${num("sw.roofD", tx("Abstand Weg → Dach", "Distance path → roof"), S.roofD, 1, "m", { ex: 1 })}
+${num("sw.wA", tx("Tiefe Gehölzkern", "Depth of shrub core"), S.wA, 0.5, "m")}
+${num("sw.path", tx("Wegbreite", "Path width"), S.path, 0.1, "m")}
+</fieldset>
+</aside><div class="main">
+<figure class="sec"><figcaption><h3>${tx("Schnitt A–A · maßstäblich", "Section A–A · to scale")}</h3><span id="secnote-sw"></span></figcaption><div class="svgwrap" id="sec-sw"></div>
+<p class="hint">${tx("Blickhöhe 1,60 m. Grün: Dach sichtbar über der Zielhöhe. Gestrichelt: Höhe ohne Schnitt.", "Eye height 1.60 m. Green: roof visible above the target height. Dashed: height without cutting.")}</p></figure>
+<div class="block"><header><h3>${tx("Qualitäten", "Qualities")}</h3></header><div id="q-sw"></div><div id="ind-sw"></div></div>
+<div class="block"><header><h3>${tx("Konflikte & Prüfpunkte", "Conflicts & checks")}</h3></header><div id="warn-sw"></div></div>
+<div class="block"><header><h3>${tx("Pflanzliste · Sträucher Zone A", "Planting schedule · shrubs zone A")}</h3><span class="hint">${tx("Anteil nach Stückzahl", "Share by number of plants")}</span></header>${listTable("sw", "shrubs", { layers: ["shrub", "tree2"] })}</div>
+<div class="block"><header><h3>${tx("Unterpflanzung Zone A", "Underplanting zone A")}</h3></header>${listTable("sw", "gA", { layers: ["gc", "geo", "herb"] })}</div>
+<div class="block"><header><h3>${tx("Saum Zone B", "Fringe zone B")}</h3></header>${listTable("sw", "gB", { layers: ["gc", "geo", "herb"] })}</div>
+<div class="block"><header><h3>${tx("Geophyten", "Geophytes")}</h3></header>${listTable("sw", "geo", { layers: ["geo", "gc"] })}</div>
+<div class="block"><header><h3>${tx("Massen", "Quantities")}</h3></header><div id="mat-sw"></div></div>
+</div></div></section>`;
+}
+function updSW(R) {
+  const S = state.sw;
+  setHTML("sec-sw", secSW(S, R));
+  setHTML("secnote-sw", R.visible ? `<span class="chip ok">${tx("Dach sichtbar", "Roof visible")}</span>` : `<span class="chip bad">${tx("Dach verdeckt", "Roof blocked")}</span>`);
+  setHTML("calc-sw", `<span>Zone A (${tx("Gehölzkern", "core")}): <b>${nf(R.A, 1)} m²</b></span><span>Zone B (${tx("Saum", "fringe")}): <b>${nf(R.B, 1)} m²</b></span><span>${tx("Gesamt", "Total")}: <b>${nf(R.T, 1)} m²</b> · ${tx("Wegkante", "path edge")} <b>${nf(R.edge)} lfm</b></span>`);
+  setHTML("q-sw", qualBlock(SW_Q[S.char] || SW_Q.balanced));
+  setHTML("ind-sw", inds([
+    { k: tx("Dachsicht", "Roof view"), v: R.visible ? tx("ja", "yes") : tx("nein", "no"), s: tx(`Sträucher max. ${nf(R.hMax, 1)} m`, `shrubs max. ${nf(R.hMax, 1)} m`), st: R.visible ? "ok" : "bad" },
+    { k: tx("Passt zum Grundwasser", "Fits groundwater"), v: pct(R.ecoShrub.fit), s: tx(`MHGW wirksam ${nf(R.gwEff, 2)} m`, `effective MHGW ${nf(R.gwEff, 2)} m`), st: st3(R.ecoShrub.fit, 0.9, 0.7) },
+    { k: tx("Gebietseigen / heimisch", "Regional / native"), v: pct(R.ecoShrub.native), s: tx("Sträucher nach Stückzahl", "shrubs by number"), st: st3(R.ecoShrub.native, 0.8, 0.6) },
+    { k: tx("Bienenweide", "Bee forage"), v: pct(R.ecoShrub.bee), st: st3(R.ecoShrub.bee, 0.6, 0.4) },
+    { k: tx("Vogelnährgehölz", "Bird food"), v: pct(R.ecoShrub.bird), st: st3(R.ecoShrub.bird, 0.6, 0.4) },
+    { k: tx("Immergrün (Winterbild)", "Evergreen (winter)"), v: pct(R.ecoShrub.ever) },
+    { k: tx("Arten / giftige Arten", "Species / toxic species"), v: `${R.eco.species} / ${R.eco.toxic}` },
+    { k: tx("Pflanzen gesamt", "Plants in total"), v: nf(R.nShrub + R.nGA + R.nGB), s: tx(`davon ${nf(R.nShrub)} Sträucher`, `incl. ${nf(R.nShrub)} shrubs`) }
+  ]));
+  setHTML("warn-sw", warnList(R.warns));
+  fillList("sw", "shrubs", R.shrubs); fillList("sw", "gA", R.gA); fillList("sw", "gB", R.gB); fillList("sw", "geo", R.geo);
+  setHTML("mat-sw", matTable(rowsSW(R)));
+  setHTML("hd-sw", headChips(R.warns, [`${nf(R.T)} m²`, `${nf(R.nShrub)} ${tx("Sträucher", "shrubs")}`]));
+}
+function viewVP() {
+  const S = state.vp;
+  const rows = S.trees.map((t, i) => {
+    const s = sp(t.id), p = `vp.trees.${i}`, pid = `vp-trees-${i}`;
+    return `<tr><td><span class="bot">${esc(s.b)}</span><span class="de">${esc(s.de)}</span></td>
+<td><select id="in-${pid}-g" data-path="${p}.g" data-str="1" aria-label="${tx("Gruppe", "Group")}"><option value="L"${t.g === "L" ? " selected" : ""}>${tx("groß", "large")}</option><option value="S"${t.g === "S" ? " selected" : ""}>${tx("klein", "small")}</option></select></td>
+<td class="num"><input type="number" id="in-${pid}-n" data-path="${p}.n" value="${t.n}" step="1" min="0" aria-label="${tx("Anzahl", "Number")}"></td>
+<td class="num"><input type="number" id="in-${pid}-c" data-path="${p}.c" value="${t.c}" step="0.5" min="0" aria-label="${tx("Krone", "Crown")}"></td>
+<td class="num"><input type="number" id="in-${pid}-h" data-path="${p}.h" value="${t.h}" step="0.5" min="0" aria-label="${tx("Höhe", "Height")}"></td>
+<td class="num"><input type="number" id="in-${pid}-grate" data-path="${p}.grate" value="${t.grate}" step="0.25" min="0" aria-label="${tx("Rostfläche", "Grate area")}"></td>
+<td class="num"><input type="number" id="in-${pid}-vol" data-path="${p}.vol" value="${t.vol}" step="1" min="0" aria-label="${tx("Ziel-Wurzelraum", "Target root space")}"></td>
+<td class="num" id="rv-${pid}">–</td><td id="f-${pid}"></td>
+<td><button type="button" class="x" data-act="rm" data-list="vp.trees" data-i="${i}" aria-label="${tx("Entfernen", "Remove")} ${esc(s.b)}">×</button></td></tr>`;
+  }).join("");
+  const opts = Object.entries(allCat()).filter(([id, s]) => (s.l === "street" || s.l === "tree1" || s.l === "tree2") && !S.trees.some(t => t.id === id))
+    .sort((a, b) => a[1].b.localeCompare(b[1].b)).map(([id, s]) => `<option value="${esc(id)}">${esc(s.b)} – ${esc(s.de)}</option>`).join("");
+  return `<section class="area">
+<div class="area-head"><span class="eyebrow">${tx("Bereich 2 · vollständig befestigt", "Area 2 · fully paved")}</span><h2>Vorplatz</h2>
+<p>${tx("Solitärbäume auf Baumrosten in eigener Form. Der Wurzelraum liegt unter dem Rost (Bauweise 1) und setzt sich unter dem Belag fort (Bauweise 2). Grundwasser und Grubentiefe hängen direkt zusammen.", "Solitary trees on tree grates in a custom shape. The root space sits under the grate (Bauweise 1) and continues under the paving (Bauweise 2). Groundwater and pit depth are directly linked.")}</p>
+<div class="chips" id="hd-vp"></div></div>
+<div class="area-grid"><aside class="rail">
+<fieldset><legend>${tx("Wurzelraum-Standard", "Root space standard")}</legend>
+${sel("vp.root", tx("Voreinstellung", "Preset"), S.root, Object.keys(VP_ROOT).map(k => [k, tx(VP_ROOT[k].name[0], VP_ROOT[k].name[1])]), "vproot")}
+<p class="hint">${tx("Setzt den Ziel-Wurzelraum je Baum nach Gruppe (groß / klein).", "Sets the target root space per tree by group (large / small).")}</p></fieldset>
+<fieldset><legend>${tx("Platz & Grundwasser", "Plaza & groundwater")}</legend>
+${num("vp.plaza", tx("Platzfläche", "Plaza area"), S.plaza, 50, "m²", { ex: 1 })}
+${num("vp.gw", tx("MHGW unter Gelände", "MHGW below ground"), S.gw, 0.05, "m", { ex: 1 })}
+${num("vp.clear", tx("Abstand Grubensohle – MHGW", "Distance pit base – MHGW"), S.clear, 0.05, "m")}
+${chk("vp.auto", tx("Grubentiefe an Grundwasser anpassen (min. 1,0 m)", "Adapt pit depth to groundwater (min. 1.0 m)"), S.auto)}
+${num("vp.pit", tx("Geplante Grubentiefe", "Planned pit depth"), S.pit, 0.05, "m")}
+${num("vp.ext", tx("Substrattiefe unter Belag", "Substrate depth under paving"), S.ext, 0.05, "m")}
+${num("vp.fll", tx("FLL-Mindestwurzelraum", "FLL minimum root space"), S.fll, 1, "m³")}
+${num("vp.cb", tx("Kronenansatz bei Pflanzung", "Crown base at planting"), S.cb, 0.1, "m")}
+<div class="calc" id="calc-vp"></div></fieldset>
+</aside><div class="main">
+<figure class="sec"><figcaption><h3>${tx("Schnitt B–B · maßstäblich", "Section B–B · to scale")}</h3><span id="secnote-vp"></span></figcaption><div class="svgwrap" id="sec-vp"></div>
+<p class="hint">${tx("Je Art ein Baum, ausgewachsene Modellkrone. Grube unter dem Rost, gestrichelt die Erweiterung unter dem Belag, blau der Sicherheitsabstand zum Grundwasser.", "One tree per species with the mature model crown. Pit under the grate, dashed the extension under the paving, blue the safety distance to groundwater.")}</p></figure>
+<div class="block"><header><h3>${tx("Qualitäten", "Qualities")}</h3></header><div id="q-vp"></div><div id="ind-vp"></div></div>
+<div class="block"><header><h3>${tx("Konflikte & Prüfpunkte", "Conflicts & checks")}</h3></header><div id="warn-vp"></div></div>
+<div class="block"><header><h3>${tx("Baumliste", "Tree schedule")}</h3><span class="hint">${tx("Krone und Höhe = ausgewachsenes Modell", "Crown and height = mature model")}</span></header>
+<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Art", "Species")}</th><th>${tx("Gruppe", "Group")}</th><th class="num">${tx("Anzahl", "No.")}</th><th class="num">${tx("Krone m", "Crown m")}</th><th class="num">${tx("Höhe m", "Height m")}</th><th class="num">${tx("Rost m²", "Grate m²")}</th><th class="num">${tx("Ziel m³", "Target m³")}</th><th class="num">${tx("Grube / Erw. m³", "Pit / ext. m³")}</th><th>${tx("Hinweise", "Notes")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+<div class="listtools"><span class="listsum" id="sum-vp-trees">–</span><span class="addrow"><select id="add-vp-trees" aria-label="${tx("Baumart hinzufügen", "Add tree species")}"><option value="">${tx("Baumart hinzufügen …", "Add tree species …")}</option>${opts}</select><button type="button" class="btn sm" data-act="addtree">${tx("Hinzufügen", "Add")}</button></span></div></div>
+<div class="block"><header><h3>${tx("Massen", "Quantities")}</h3></header><div id="mat-vp"></div></div>
+</div></div></section>`;
+}
+function updVP(R) {
+  const S = state.vp;
+  setHTML("sec-vp", secVP(S, R));
+  setHTML("secnote-vp", R.conflict ? `<span class="chip bad">${tx("Grube im Grundwasserbereich", "Pit in groundwater zone")}</span>` : `<span class="chip ok">${tx("Grube über dem Grundwasser", "Pit above groundwater")}</span>`);
+  setHTML("calc-vp", `<span>${tx("Wirksame Grubentiefe", "Effective pit depth")}: <b>${nf(R.pit, 2)} m</b></span><span>${tx("Verfügbar bis MHGW − Abstand", "Available to MHGW − distance")}: <b>${nf(R.avail, 2)} m</b></span>`);
+  setHTML("q-vp", qualBlock(VP_Q[S.root] || VP_Q.bern));
+  setHTML("ind-vp", inds([
+    { k: tx("Kronenfläche / Platz", "Canopy / plaza"), v: pct(R.cover), s: tx(`${nf(R.canopy)} m² ausgewachsen`, `${nf(R.canopy)} m² at maturity`), st: st3(R.cover, 0.3, 0.15) },
+    { k: tx("Wurzelraum ≥ FLL-Minimum", "Root space ≥ FLL minimum"), v: pct(R.okRoot), st: R.okRoot >= 0.999 ? "ok" : "bad" },
+    { k: tx("Passt zum Grundwasser", "Fits groundwater"), v: pct(R.eco.fit), st: st3(R.eco.fit, 0.9, 0.7) },
+    { k: tx("Bäume gesamt", "Trees in total"), v: nf(R.n), s: tx(`${nf(R.nLarge)} groß · ${nf(R.n - R.nLarge)} klein`, `${nf(R.nLarge)} large · ${nf(R.n - R.nLarge)} small`) },
+    { k: tx("Heimische Arten", "Native species"), v: pct(R.eco.native), s: tx("nach Stückzahl", "by number") },
+    { k: tx("Bienenweide", "Bee forage"), v: pct(R.eco.bee) },
+    { k: tx("Substrat gesamt", "Substrate in total"), v: nf(R.B1 + R.B2) + " m³", s: `B1 ${nf(R.B1)} · B2 ${nf(R.B2)}` },
+    { k: tx("Erweiterung unter Belag", "Extension under paving"), v: nf(R.extArea) + " m²" }
+  ]));
+  setHTML("warn-vp", warnList(R.warns));
+  R.trees.forEach((t, i) => {
+    const pid = `vp-trees-${i}`;
+    const rv = document.getElementById("rv-" + pid), f = document.getElementById("f-" + pid);
+    if (rv) rv.textContent = `${nf(t.pitV, 1)} / ${nf(t.ext, 1)}`;
+    if (f) f.innerHTML = flagChips(t.id, t.fit) + (t.belowMin ? `<div class="chips"><span class="chip bad">&lt; FLL</span></div>` : "") + (t.overCrown ? `<div class="chips"><span class="chip warn">${tx("Krone > GALK", "crown > GALK")}</span></div>` : "");
+  });
+  setHTML("sum-vp-trees", tx(`${nf(R.n)} Bäume · ${nf(R.grateA, 1)} m² Rostfläche`, `${nf(R.n)} trees · ${nf(R.grateA, 1)} m² grate area`));
+  setHTML("mat-vp", matTable(rowsVP(R)));
+  setHTML("hd-vp", headChips(R.warns, [`${nf(R.n)} ${tx("Bäume", "trees")}`, `${nf(R.B1 + R.B2)} m³ ${tx("Wurzelraum", "root space")}`]));
+}
+function viewRB() {
+  const S = state.rb;
+  return `<section class="area">
+<div class="area-head"><span class="eyebrow">${tx("Bereich 3 · hinter den Leitplanken", "Area 3 · behind the guardrails")}</span><h2>Randbereich</h2>
+<p>${tx("Waldmantel als Puffer zur Straße und Waldkern mit dem Charakter eines bodensauren Buchen-Eichenwaldes. Bäume stehen erst außerhalb des Wirkungsbereichs der Leitplanke.", "A forest edge as buffer to the road and a forest core with the character of an acidic beech-oak forest. Trees stand only outside the working width of the guardrail.")}</p>
+<div class="chips" id="hd-rb"></div></div>
+<div class="area-grid"><aside class="rail">
+<fieldset><legend>${tx("Waldcharakter & Dichte", "Forest character & density")}</legend>
+${sel("rb.char", tx("Charakter Waldkern", "Character of core"), S.char, Object.keys(RB_CHAR).map(k => [k, tx(RB_CHAR[k].name[0], RB_CHAR[k].name[1])]), "rbchar")}
+${sel("rb.dens", tx("Pflanzdichte", "Planting density"), S.dens, Object.keys(RB_DENS).map(k => [k, tx(RB_DENS[k].name[0], RB_DENS[k].name[1])]), "1")}
+<p class="hint">${tx("Der Charakter setzt die Anteile im Waldkern. Die Dichte skaliert alle forstlichen Pflanzverbände.", "The character sets the shares in the core. The density scales all forestry spacings.")}</p></fieldset>
+<fieldset><legend>${tx("Flächen", "Areas")}</legend>
+${num("rb.total", tx("Pflanzfläche gesamt", "Total plantable area"), S.total, 50, "m²")}
+${num("rb.mantel", tx("Waldmantel", "Forest edge"), S.mantel, 50, "m²")}
+${num("rb.saumShare", tx("Anteil Krautsaum am Mantel", "Herb fringe share of edge"), S.saumShare, 5, "%", { scale: 100, max: 100 })}
+${num("rb.feucht", tx("Feuchtbereich", "Moist zone"), S.feucht, 50, "m²", { ex: 1 })}
+${num("rb.pathLen", tx("Weglänge mit Rasenstreifen", "Path length with lawn strips"), S.pathLen, 10, tx("lfm", "lm"), { ex: 1 })}
+${num("rb.stripW", tx("Breite Rasenstreifen", "Lawn strip width"), S.stripW, 0.025, "m")}
+<div class="calc" id="calc-rb"></div></fieldset>
+<fieldset><legend>${tx("Leitplanke & Zonierung", "Guardrail & zoning")}</legend>
+${chk("rb.guard", tx("Leitplanke vorhanden", "Guardrail present"), S.guard)}
+${num("rb.W", tx("Wirkungsbereich W", "Working width W"), S.W, 0.1, "m", { ex: 1 })}
+${sel("rb.speed", tx("Zul. Geschwindigkeit", "Speed limit"), S.speed, [["70", "60–70 km/h"], ["100", "80–100 km/h"]], "")}
+${num("rb.wSaum", tx("Breite Krautsaum", "Herb fringe width"), S.wSaum, 0.5, "m")}
+${num("rb.wStrauch", tx("Breite Strauchmantel", "Shrub mantle width"), S.wStrauch, 0.5, "m")}
+${num("rb.wBaum", tx("Breite Baummantel", "Tree mantle width"), S.wBaum, 0.5, "m")}
+<p class="hint">${tx("Bäume mit mehr als 25 cm Stammumfang gelten als Hindernis (RPS 2009). Kritischer Abstand: 4,5 m bei 60–70 km/h, 7,5 m bei 80–100 km/h.", "Trees with a stem circumference above 25 cm count as obstacles (RPS 2009). Critical distance: 4.5 m at 60–70 km/h, 7.5 m at 80–100 km/h.")}</p></fieldset>
+<fieldset><legend>${tx("Grundwasser & Boden", "Groundwater & soil")}</legend>
+${num("rb.gw", tx("MHGW im Waldkern", "MHGW in the core"), S.gw, 0.05, "m", { ex: 1 })}
+${num("rb.topsoil", tx("Oberboden (Option)", "Topsoil (option)"), S.topsoil, 0.05, "m")}
+${num("rb.startArea", tx("Startbäume: Fläche je Baum (0 = keine)", "Start trees: area per tree (0 = none)"), S.startArea, 10, "m²")}
+</fieldset>
+<fieldset><legend>${tx("Krautschicht & Saat", "Herb layer & seed")}</legend>
+${num("rb.initShare", tx("Initialpflanzung: Flächenanteil", "Initial planting: area share"), S.initShare, 1, "%", { scale: 100, max: 100 })}
+${num("rb.initDens", tx("Initialpflanzung: Dichte", "Initial planting: density"), S.initDens, 1, tx("St./m²", "pcs/m²"))}
+${num("rb.seedSaum", tx("Saatmenge Saum", "Seed rate fringe"), S.seedSaum, 0.5, "g/m²")}
+${num("rb.seedLawn", tx("Saatmenge Rasen", "Seed rate lawn"), S.seedLawn, 1, "g/m²")}
+</fieldset>
+<fieldset><legend>${tx("Modellhöhen (Schnitt / BIM)", "Model heights (section / BIM)")}</legend>
+${num("rb.hWK", "Waldkern", S.hWK, 1, "m")}
+${num("rb.hFB", "Feuchtbereich", S.hFB, 1, "m")}
+${num("rb.hWM", tx("Strauchmantel", "Shrub mantle"), S.hWM, 0.5, "m")}
+</fieldset>
+</aside><div class="main">
+<figure class="sec"><figcaption><h3>${tx("Schnitt C–C · maßstäblich", "Section C–C · to scale")}</h3><span id="secnote-rb"></span></figcaption><div class="svgwrap" id="sec-rb"></div>
+<p class="hint">${tx("Fahrbahn → Leitplanke → Krautsaum → Strauchmantel → Baummantel → Waldkern. Gelb: Wirkungsbereich W. Rote Stämme stehen zu nah an der Straße.", "Road → guardrail → herb fringe → shrub mantle → tree mantle → forest core. Yellow: working width W. Red trunks stand too close to the road.")}</p></figure>
+<div class="block"><header><h3>${tx("Qualitäten", "Qualities")}</h3></header><div id="q-rb"></div><div id="ind-rb"></div></div>
+<div class="block"><header><h3>${tx("Konflikte & Prüfpunkte", "Conflicts & checks")}</h3></header><div id="warn-rb"></div></div>
+<div class="block"><header class="zone-title"><h3>${tx("Waldkern · Gehölze", "Forest core · woody plants")}</h3><span class="hint" id="za-wk"></span></header>${listTable("rb", "wk", { dens: true, layers: ["tree1", "tree2", "pioneer", "shrub"] })}</div>
+<div class="block"><header class="zone-title"><h3>${tx("Feuchtbereich · Gehölze", "Moist zone · woody plants")}</h3><span class="hint" id="za-fb"></span></header>${listTable("rb", "fb", { dens: true, layers: ["tree1", "tree2", "pioneer", "shrub"] })}</div>
+<div class="block"><header class="zone-title"><h3>${tx("Waldmantel · Strauch- und Baummantel", "Forest edge · shrub and tree mantle")}</h3><span class="hint" id="za-wm"></span></header>${listTable("rb", "wm", { dens: true, layers: ["shrub", "tree2", "pioneer", "tree1"] })}</div>
+<div class="block"><header><h3>${tx("Krautschicht Waldkern · Initialpflanzung", "Herb layer core · initial planting")}</h3></header>${listTable("rb", "hk", { layers: ["herb", "gc", "geo"] })}</div>
+<div class="block"><header><h3>${tx("Krautschicht Feuchtbereich · Initialpflanzung", "Herb layer moist zone · initial planting")}</h3></header>${listTable("rb", "hf", { layers: ["herb", "gc", "geo"] })}</div>
+<div class="block"><header><h3>${tx("Bodendeckung – Konzept", "Ground cover – concept")}</h3></header>
+<div class="qual"><div><h4>${tx("Jahre 1–4", "Years 1–4")}</h4><p>${tx("Freischneiden zwischen den Reihen, 2–3-mal pro Jahr. Keine flächige Rasen- oder Wiesenansaat in den Waldflächen.", "Cut back weeds between the rows 2–3 times per year. No full lawn or meadow seeding in the forest areas.")}</p></div>
+<div><h4>${tx("Krautschicht", "Herb layer")}</h4><p>${tx("Waldkräuter in Gruppen pflanzen; sie breiten sich aus, wenn sich das Kronendach schließt. Laub und Totholz liegen lassen.", "Plant forest herbs in groups; they spread when the canopy closes. Leave leaves and deadwood in place.")}</p></div>
+<div><h4>${tx("Saum & Rasen", "Fringe & lawn")}</h4><p>${tx("Krautsaum und Rasenstreifen mit Regiosaatgut UG 1. Option: Waldboden-Impfung mit Oberboden aus gerodeten U5-Waldflächen.", "Herb fringe and lawn strips with regional seed UG 1. Option: forest soil inoculation with topsoil from cleared U5 forest areas.")}</p></div></div></div>
+<div class="block"><header><h3>${tx("Massen", "Quantities")}</h3></header><div id="mat-rb"></div></div>
+</div></div></section>`;
+}
+function updRB(R) {
+  const S = state.rb;
+  setHTML("sec-rb", secRB(S, R));
+  setHTML("secnote-rb", R.okTree ? `<span class="chip ok">${tx("Bäume außerhalb der Gefahrenzone", "Trees outside the hazard zone")}</span>` : `<span class="chip bad">${tx("Bäume zu nah an der Straße", "Trees too close to the road")}</span>`);
+  setHTML("calc-rb", `<span>Waldkern: <b>${nf(R.core)} m²</b></span><span>${tx("Strauch- / Baummantel", "Shrub / tree mantle")}: <b>${nf(R.wmA)} m²</b></span><span>Krautsaum: <b>${nf(R.saum)} m²</b> · ${tx("Rasen", "lawn")}: <b>${nf(R.lawn)} m²</b></span><span>${tx("Rechnerische Randlänge", "Implied edge length")}: <b>${nf(R.edgeLen)} m</b></span>`);
+  setHTML("q-rb", qualBlock(RB_Q[S.char] || RB_Q.buei));
+  setHTML("ind-rb", inds([
+    { k: tx("Bäume außerhalb W / krit. Abstand", "Trees outside W / critical distance"), v: R.okTree ? tx("ja", "yes") : tx("nein", "no"), s: tx(`Bäume ab ${nf(R.treeStart, 1)} m, Grenze ${nf(R.limit, 1)} m`, `trees from ${nf(R.treeStart, 1)} m, limit ${nf(R.limit, 1)} m`), st: R.okTree ? "ok" : "bad" },
+    { k: tx("Eiche + Buche im Waldkern", "Oak + beech in the core"), v: pct(R.charShare), s: tx("Charakterarten nach Stückzahl", "character species by number"), st: st3(R.charShare, 0.5, 0.35) },
+    { k: tx("Passt zum Grundwasser", "Fits groundwater"), v: pct(R.eco.fit), st: st3(R.eco.fit, 0.9, 0.7) },
+    { k: tx("Mittlere Dichte", "Average density"), v: nf(R.dens) + " /ha", s: tx(`${nf(R.woody)} Gehölze`, `${nf(R.woody)} woody plants`) },
+    { k: tx("Gebietseigen / heimisch", "Regional / native"), v: pct(R.eco.native), st: st3(R.eco.native, 0.95, 0.8) },
+    { k: tx("Vogelnährgehölz", "Bird food"), v: pct(R.eco.bird) },
+    { k: tx("Immergrün (Winterbild)", "Evergreen (winter)"), v: pct(R.eco.ever) },
+    { k: tx("Arten / giftige Arten", "Species / toxic species"), v: `${R.eco.species} / ${R.eco.toxic}` }
+  ]));
+  setHTML("warn-rb", warnList(R.warns));
+  setHTML("za-wk", `${nf(R.core)} m²`); setHTML("za-fb", `${nf(S.feucht)} m²`); setHTML("za-wm", `${nf(R.wmA)} m²`);
+  fillList("rb", "wk", R.wk); fillList("rb", "fb", R.fb); fillList("rb", "wm", R.wm); fillList("rb", "hk", R.hk); fillList("rb", "hf", R.hf);
+  setHTML("mat-rb", matTable(rowsRB(R)));
+  setHTML("hd-rb", headChips(R.warns, [`${nf(S.total)} m²`, `${nf(R.woody)} ${tx("Gehölze", "woody plants")}`]));
+}
+function headChips(warns, facts) {
+  const nb = warns.filter(w => w.lvl === "bad").length, nw = warns.filter(w => w.lvl === "warn").length;
+  return facts.map(f => `<span class="chip">${esc(f)}</span>`).join("") +
+    (nb ? `<span class="chip bad">${nb} ${tx(nb === 1 ? "Konflikt" : "Konflikte", nb === 1 ? "conflict" : "conflicts")}</span>` : "") +
+    (nw ? `<span class="chip warn">${nw} ${tx("Prüfpunkte", nw === 1 ? "check" : "checks")}</span>` : "") +
+    (!nb && !nw ? `<span class="chip ok">${tx("keine Konflikte", "no conflicts")}</span>` : "");
+}
+function viewOverview(C) {
+  const card = (key, name, sub, dl, warns) => `<article class="card"><div><span class="eyebrow">${esc(sub)}</span><h3>${esc(name)}</h3></div>
+<div class="chips">${headChips(warns, [])}</div><dl>${dl.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+<button type="button" class="btn sm" data-tab="${key}">${tx("Bereich öffnen", "Open area")}</button></article>`;
+  const sw = C.sw, vp = C.vp, rb = C.rb;
+  const totals = [
+    [tx("Gehölze (Sträucher, Forstpflanzen, Heister)", "Woody plants (shrubs, forest plants, Heister)"), nf(sw.nShrub + rb.woody + rb.start), tx("St.", "pcs")],
+    [tx("Platzbäume Hochstamm", "Plaza trees, standard"), nf(vp.n), tx("St.", "pcs")],
+    [tx("Stauden, Bodendecker, Waldkräuter", "Perennials, ground cover, forest herbs"), nf(sw.nGA + sw.nGB + rb.nHK + rb.nHF), tx("St.", "pcs")],
+    [tx("Geophyten", "Geophytes"), nf(sw.nGeo), tx("St.", "pcs")],
+    [tx("Regiosaatgut UG 1", "Regional seed UG 1"), nf(rb.seedSaum + rb.seedLawn, 2), "kg"],
+    [tx("Baumsubstrat (Bauweise 1 + 2)", "Tree substrate (Bauweise 1 + 2)"), nf(vp.B1 + vp.B2), "m³"],
+    [tx("Oberboden (Stadtwaldgarten + Option Randbereich)", "Topsoil (urban forest garden + verge option)"), nf(sw.topsoil + rb.topsoil), "m³"],
+    [tx("Holzhäckselmulch", "Wood chip mulch"), nf(sw.mulch[0]) + "–" + nf(sw.mulch[1]), "m³"],
+    [tx("Stahlkante", "Steel edge"), nf(sw.edge), tx("lfm", "lm")],
+    [tx("Baumroste", "Tree grates"), nf(vp.n), tx("St.", "pcs")]
+  ];
+  const allW = [["Mini-Stadtwaldgarten", sw.warns], ["Vorplatz", vp.warns], ["Randbereich", rb.warns]];
+  return `<section class="area">
+<div class="area-head"><span class="eyebrow">${tx("Übersicht · drei Bereiche", "Overview · three areas")}</span><h2>${tx("Vegetation an der U5-Haltestelle Arenen", "Planting at the U5 Arenen station")}</h2>
+<p>${tx("Alle drei Bereiche auf einen Blick. Werte in einem Bereich ändern – Massen, Qualitäten und Konflikte rechnen sofort neu. Beispielwerte sind gelb markiert und durch Modell- und Gutachterwerte zu ersetzen.", "All three areas at a glance. Change values in an area – quantities, qualities and conflicts update at once. Example values are marked and should be replaced with model and survey values.")}</p></div>
+<div class="cards">
+${card("stadtwald", "Mini-Stadtwaldgarten", tx("Strauchinseln · wild", "shrub islands · wild"), [[tx("Pflanzfläche", "Planting area"), nf(sw.T) + " m²"], [tx("Sträucher", "Shrubs"), nf(sw.nShrub)], [tx("Bodendecker", "Ground cover"), nf(sw.nGA + sw.nGB)], [tx("Dachsicht", "Roof view"), sw.visible ? tx("ja", "yes") : tx("nein", "no")], [tx("MHGW", "MHGW"), nf(state.sw.gw, 2) + " m"]], sw.warns)}
+${card("vorplatz", "Vorplatz", tx("Solitärbäume · befestigt", "solitary trees · paved"), [[tx("Bäume", "Trees"), nf(vp.n)], [tx("Kronenfläche / Platz", "Canopy / plaza"), pct(vp.cover)], [tx("Wurzelraum gesamt", "Root space total"), nf(vp.B1 + vp.B2) + " m³"], [tx("Grubentiefe", "Pit depth"), nf(vp.pit, 2) + " m"], [tx("MHGW", "MHGW"), nf(state.vp.gw, 2) + " m"]], vp.warns)}
+${card("randbereich", "Randbereich", tx("Waldmantel · Buchen-Eichenwald", "forest edge · beech-oak forest"), [[tx("Pflanzfläche", "Planting area"), nf(state.rb.total) + " m²"], [tx("Gehölze", "Woody plants"), nf(rb.woody)], [tx("Mittlere Dichte", "Average density"), nf(rb.dens) + " /ha"], [tx("Bäume außerhalb W", "Trees outside W"), rb.okTree ? tx("ja", "yes") : tx("nein", "no")], [tx("MHGW", "MHGW"), nf(state.rb.gw, 2) + " m"]], rb.warns)}
+</div>
+<div class="block"><header><h3>${tx("Massen gesamt", "Total quantities")}</h3><span class="hint">${tx("Details je Bereich im jeweiligen Reiter", "Details per area in each tab")}</span></header>
+<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Position", "Item")}</th><th class="num">${tx("Menge", "Qty")}</th><th>${tx("Einheit", "Unit")}</th></tr></thead><tbody>${totals.map(r => `<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table></div></div>
+<div class="block"><header><h3>${tx("Konflikte & Prüfpunkte", "Conflicts & checks")}</h3></header>
+${allW.map(([n, w]) => `<div class="block"><h3 style="font-size:.95rem">${esc(n)}</h3>${warnList(w)}</div>`).join("")}</div>
+</section>`;
+}
+
+/* ---------------------------------------------------------------- shell & render */
+function setHTML(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
+function shell() {
+  const tabs = [["overview", tx("Übersicht", "Overview"), tx("alle Bereiche", "all areas")], ["stadtwald", "Mini-Stadtwaldgarten", tx("Bereich 1", "area 1")], ["vorplatz", "Vorplatz", tx("Bereich 2", "area 2")], ["randbereich", "Randbereich", tx("Bereich 3", "area 3")]];
+  return `<div class="wrap">
+<header class="tb"><div class="tb-left"><span class="eyebrow">U5M2000-6000 · ${tx("Phase 3 · Entwurf", "Phase 3 · draft")} · ${tx("Freianlagen", "Landscape")}</span><h1>U5 Arenen Pflanzplaner</h1>
+<p>${tx("Raum, Ökologie und Material für Mini-Stadtwaldgarten, Vorplatz und Randbereich. Flächen, Grundwasser, Arten, Dichte und Charakter ändern und die Folgen direkt sehen.", "Space, ecology and materials for the mini urban forest garden, the plaza and the verge. Change areas, groundwater, species, density and character and see the effects at once.")}</p></div>
+<div class="tb-right"><div class="seg" role="group" aria-label="Language"><button type="button" data-lang="de" aria-pressed="${LANG === "de"}">DE</button><button type="button" data-lang="en" aria-pressed="${LANG === "en"}">EN</button></div>
+<span class="status" id="status" role="status"></span>
+<div class="actions"><button type="button" class="btn primary" id="btn-save" data-act="save">${tx("Für alle speichern", "Save for everyone")}</button>
+<button type="button" class="btn" data-act="csv">${tx("Massen als CSV", "Quantities as CSV")}</button>
+<button type="button" class="btn" data-act="json">${tx("Szenario als JSON", "Scenario as JSON")}</button>
+<button type="button" class="btn" data-act="import">${tx("JSON laden", "Load JSON")}</button>
+<button type="button" class="btn" data-act="reset">${tx("Zurücksetzen", "Reset")}</button>
+<input type="file" id="file-import" accept="application/json,.json" hidden></div></div></header>
+<div class="panel" id="reset-panel" hidden><p>${tx("Welchen Stand möchten Sie laden? Ihre Änderungen in diesem Browser gehen dabei verloren.", "Which state do you want to load? Your changes in this browser will be lost.")}</p>
+<div class="row"><button type="button" class="btn" data-act="reset-saved">${tx("Gespeicherten Stand laden", "Load the saved state")}</button><button type="button" class="btn" data-act="reset-default">${tx("Ausgangswerte laden (Excel 22.10.2026)", "Load initial values (Excel 22.10.2026)")}</button><button type="button" class="btn" data-act="reset-cancel">${tx("Abbrechen", "Cancel")}</button></div></div>
+<div class="panel" id="export-panel" hidden><p id="export-msg"></p><textarea id="export-text" readonly aria-label="Export"></textarea><div class="row"><button type="button" class="btn sm" data-act="copy">${tx("Kopieren", "Copy")}</button><button type="button" class="btn sm" data-act="export-close">${tx("Schließen", "Close")}</button></div></div>
+<nav class="tabs" role="tablist">${tabs.map(([k, l, s]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${ui.tab === k}"><span>${esc(l)}</span><small>${esc(s)}</small></button>`).join("")}</nav>
+<main id="view"></main>
+<footer class="foot"><p><b>${tx("Planungsheuristiken (Annahmen)", "Planning heuristics (assumptions)")}:</b> ${tx("Grundwasser für Sträucher/Kräuter: unter 0,8 m kritisch, 0,8–1,5 m Vorsicht für trockenheitsliebende Arten; für Bäume: unter 1,0 m kritisch, 1,0–2,0 m Vorsicht. Feuchtbereich wird als nass (MHGW 0,4 m) bewertet. Alle Werte sind Startwerte für Phase 3 und mit Fachplanung und Gutachten abzustimmen.", "Groundwater for shrubs/herbs: below 0.8 m critical, 0.8–1.5 m caution for species that need drainage; for trees: below 1.0 m critical, 1.0–2.0 m caution. The moist zone is rated as wet (MHGW 0.4 m). All values are Phase 3 starting points and must be checked with specialists and surveys.")}</p>
+<ul><li><a href="https://6sku3uaup9f9.din.de/en/technical-rule/fll-baumpflanzungen-teil-2/139904945" target="_blank" rel="noopener">FLL Baumpflanzungen Teil 2:2010</a> · <a href="https://strassenbaumliste.galk.de/sblistepdf.php" target="_blank" rel="noopener">GALK-Straßenbaumliste</a> · <a href="https://www.bern.ch/themen/planen-und-bauen/bern-baut/arbeitshilfen/wurzelraum-fuer-baeume-im-strassenraum/anhang/arbeitshilfe-wurzelraum-fur-strassenbaume-version.pdf" target="_blank" rel="noopener">Stadt Bern – Wurzelraum</a></li>
+<li><a href="https://kreistagsinfo.landkreis-peine.de/public/wicket/resource/org.apache.wicket.Application/doc1005014.pdf" target="_blank" rel="noopener">RPS 2009 (Landkreis Peine)</a> · <a href="https://wald-mv.de/static/WALDMV/Inhalte/Waldwissen/Gr%C3%BCner%20Ordner%20-%20Naturnaher%20Waldbau%20in%20MV/C1_Pflanzverbaende_UnterbauVoranbau_Bloessen.pdf" target="_blank" rel="noopener">Landesforst MV – Pflanzverbände</a> · <a href="https://www.bfn.de/sites/default/files/BfN/natura2000/Dokumente/9190_bodensaure_eichenwaelder.pdf" target="_blank" rel="noopener">BfN – LRT 9190</a> · <a href="https://www.gesetze-im-internet.de/ermiv/anlage.html" target="_blank" rel="noopener">ErMiV – Ursprungsgebiete</a></li></ul></footer>
+</div>`;
+}
+function renderStatus() {
+  const el = document.getElementById("status"), btn = document.getElementById("btn-save");
+  if (!el) return;
+  let cls = "status", t;
+  if (statusMsg) t = statusMsg;
+  else if (readOnly) { t = tx("Nur Lesen – Speichern ist hier nicht möglich", "Read-only – saving is not possible here"); cls += " ro"; }
+  else if (isDirty() && !IN_VIEWER) { t = tx("Änderungen in diesem Browser gespeichert. Zum Teilen: Szenario als JSON", "Changes saved in this browser. To share: scenario as JSON"); cls += " dirty"; }
+  else if (isDirty()) { t = tx("Lokaler Entwurf – noch nicht für alle gespeichert", "Local draft – not saved for everyone yet"); cls += " dirty"; }
+  else { t = savedState.meta.savedAt ? tx("Entspricht dem gespeicherten Stand vom ", "Matches the version saved on ") + new Date(savedState.meta.savedAt).toLocaleString(LANG === "en" ? "en-GB" : "de-DE") : tx("Ausgangswerte (noch nicht gespeichert)", "Initial values (not saved yet)"); cls += " clean"; }
+  el.className = cls; el.textContent = t;
+  if (btn) {
+    btn.hidden = !IN_VIEWER;
+    btn.disabled = busy || readOnly || !artifactNS || !isDirty();
+    btn.title = !artifactNS || readOnly ? tx("Speichern geht nur in der Artifact-Ansicht mit Bearbeitungsrecht.", "Saving works only in the artifact view with edit access.")
+      : !isDirty() ? tx("Keine Änderungen zum Speichern.", "No changes to save.") : tx("Speichert die aktuellen Werte als neuen Stand für alle.", "Saves the current values as the new version for everyone.");
+  }
+}
+function render() {
+  document.documentElement.lang = LANG;
+  const app = document.getElementById("app");
+  const active = document.activeElement && document.activeElement.id;
+  app.innerHTML = shell();
+  const v = document.getElementById("view");
+  v.innerHTML = ui.tab === "stadtwald" ? viewSW() : ui.tab === "vorplatz" ? viewVP() : ui.tab === "randbereich" ? viewRB() : "";
+  update();
+  renderStatus();
+  if (active) { const el = document.getElementById(active); if (el && el.focus) el.focus(); }
+}
+function update() {
+  const C = compAll();
+  if (ui.tab === "stadtwald") updSW(C.sw);
+  else if (ui.tab === "vorplatz") updVP(C.vp);
+  else if (ui.tab === "randbereich") updRB(C.rb);
+  else setHTML("view", viewOverview(C));
+}
+
+/* ---------------------------------------------------------------- state edits */
+function getRef(path) {
+  const p = path.split(".");
+  let o = state;
+  for (let i = 0; i < p.length - 1; i++) { o = o[isFinite(p[i]) ? +p[i] : p[i]]; if (o == null) return null; }
+  return { o, k: isFinite(p[p.length - 1]) ? +p[p.length - 1] : p[p.length - 1] };
+}
+function setFromInput(el) {
+  const r = getRef(el.dataset.path);
+  if (!r) return false;
+  if (el.dataset.bool) r.o[r.k] = !!el.checked;
+  else if (el.dataset.str) r.o[r.k] = el.value;
+  else {
+    const raw = String(el.value).replace(",", ".");
+    if (raw === "" || !isFinite(+raw)) return false;
+    let v = +raw;
+    if (el.dataset.scale) v = v / +el.dataset.scale;
+    r.o[r.k] = v;
+  }
+  return true;
+}
+function applyPreset(kind) {
+  if (kind === "swchar") { const p = SW_CHAR[state.sw.char]; if (p) Object.assign(state.sw, { dens: p.dens, wB: p.wB, target: p.target }); }
+  if (kind === "vproot") { const p = VP_ROOT[state.vp.root]; if (p) state.vp.trees.forEach(t => { t.vol = t.g === "L" ? p.L : p.S; }); }
+  if (kind === "rbchar") {
+    const p = RB_CHAR[state.rb.char];
+    if (p) {
+      const keep = state.rb.wk.filter(x => !(x.id in p.wk));
+      const base = Object.keys(p.wk).map(id => { const old = state.rb.wk.find(x => x.id === id); return { id, s: p.wk[id], d: old ? old.d : (DEF_DENS[sp(id).l] || 5000) }; });
+      keep.forEach(x => { x.s = 0; });
+      state.rb.wk = base.concat(keep);
+    }
+  }
+}
+function getList(path) { const r = getRef(path + ".x"); return r ? r.o : null; }
+function onAct(btn) {
+  const act = btn.dataset.act;
+  if (act === "rm") { const L = getList(btn.dataset.list); if (L) { L.splice(+btn.dataset.i, 1); changed(true); } return; }
+  if (act === "norm") { const L = getList(btn.dataset.list); const s = sum(L.map(x => x.s)); if (s > 0) { L.forEach(x => { x.s = Math.round(x.s / s * 1000) / 1000; }); const d = 1 - sum(L.map(x => x.s)); if (L.length) L[0].s = Math.round((L[0].s + d) * 1000) / 1000; changed(true); } return; }
+  if (act === "add") {
+    const lid = btn.dataset.list.replace(".", "-"), selEl = document.getElementById("add-" + lid), id = selEl && selEl.value;
+    if (!id) return;
+    const L = getList(btn.dataset.list), s = sp(id);
+    const item = { id, s: 0.05 };
+    if (btn.dataset.list.indexOf("rb.w") === 0 || btn.dataset.list === "rb.fb") item.d = DEF_DENS[s.l] || 5000;
+    L.push(item); changed(true); return;
+  }
+  if (act === "custom") {
+    const lid = btn.dataset.list.replace(".", "-"), g = k => document.getElementById(`cu-${lid}-${k}`);
+    const b = (g("b").value || "").trim();
+    if (!b) { g("b").focus(); return; }
+    const id = "x" + Date.now().toString(36);
+    const h = Math.max(0.05, +String(g("h").value).replace(",", ".") || 1);
+    state.custom[id] = { b, de: (g("de").value || "").trim(), l: g("l").value, h: [Math.round(h * 0.6 * 10) / 10, h], m: +g("m").value, o: g("o").value, t: g("t").checked ? 1 : 0, custom: 1 };
+    const item = { id, s: 0.05 };
+    if (btn.dataset.list.indexOf("rb.w") === 0 || btn.dataset.list === "rb.fb") item.d = DEF_DENS[g("l").value] || 5000;
+    getList(btn.dataset.list).push(item); changed(true); return;
+  }
+  if (act === "addisl") { const n = state.sw.islands.length + 1; state.sw.islands.push({ id: "I-" + String(n).padStart(2, "0"), a: 100, e: 20 }); changed(true); return; }
+  if (act === "rmisl") { state.sw.islands.splice(+btn.dataset.i, 1); changed(true); return; }
+  if (act === "addtree") {
+    const selEl = document.getElementById("add-vp-trees"), id = selEl && selEl.value;
+    if (!id) return;
+    const s = sp(id), big = s.c ? s.c[1] >= 12 : s.h[1] >= 20, p = VP_ROOT[state.vp.root] || VP_ROOT.bern;
+    state.vp.trees.push({ id, n: 1, c: s.c ? s.c[1] : 8, h: s.h[1], g: big ? "L" : "S", grate: big ? 9 : 6.25, vol: big ? p.L : p.S });
+    changed(true); return;
+  }
+  if (act === "save") return saveForAll();
+  if (act === "csv") return exportFile("csv");
+  if (act === "json") return exportFile("json");
+  if (act === "import") { const f = document.getElementById("file-import"); if (f) f.click(); return; }
+  if (act === "reset") { const p = document.getElementById("reset-panel"); if (p) p.hidden = false; return; }
+  if (act === "reset-cancel") { document.getElementById("reset-panel").hidden = true; return; }
+  if (act === "reset-saved") { state = clone(savedState); lsDel(STORE_DRAFT); render(); return; }
+  if (act === "reset-default") { state = withDefaults(null); state.meta.savedAt = savedState.meta.savedAt; saveDraft(); render(); return; }
+  if (act === "export-close") { document.getElementById("export-panel").hidden = true; return; }
+  if (act === "copy") {
+    const ta = document.getElementById("export-text");
+    const done = () => { statusMsg = tx("In die Zwischenablage kopiert", "Copied to the clipboard"); renderStatus(); setTimeout(() => { statusMsg = ""; renderStatus(); }, 2500); };
+    try { navigator.clipboard.writeText(ta.value).then(done, () => { ta.focus(); ta.select(); }); } catch (e) { ta.focus(); ta.select(); }
+  }
+}
+function changed(full) { saveDraft(); if (full) render(); else { update(); renderStatus(); } }
+
+/* ---------------------------------------------------------------- export / import / save */
+function csvText() {
+  const C = compAll(), q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const head = [tx("Bereich", "Area"), tx("Teil", "Part"), tx("Botanischer Name / Position", "Botanical name / item"), tx("Deutscher Name", "German name"), tx("Menge", "Quantity"), tx("Einheit", "Unit"), tx("Qualität / Hinweis", "Quality / note")];
+  const lines = [head.map(q).join(";")];
+  const add = (area, rows) => rows.forEach(r => lines.push([area, r.zone, r.b, r.de, qtyText(r.q, r.u), r.u, r.note].map(q).join(";")));
+  add("Mini-Stadtwaldgarten", rowsSW(C.sw)); add("Vorplatz", rowsVP(C.vp)); add("Randbereich", rowsRB(C.rb));
+  return "﻿" + lines.join("\r\n");
+}
+async function exportFile(kind) {
+  const data = kind === "csv" ? csvText() : JSON.stringify(state, null, 2);
+  const filename = kind === "csv" ? "U5_Arenen_Pflanzplaner_Massen.csv" : "U5_Arenen_Pflanzplaner_Szenario.json";
+  if (downloadsNS) {
+    try { await downloadsNS.save({ filename, data }); return; }
+    catch (e) { if (e && e.code === "declined") return; }
+  }
+  if (!IN_VIEWER) {
+    try {
+      const blob = new Blob([data], { type: kind === "csv" ? "text/csv;charset=utf-8" : "application/json" });
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
+      a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      return;
+    } catch (e) { /* fall through to the copy panel */ }
+  }
+  const p = document.getElementById("export-panel");
+  document.getElementById("export-msg").textContent = tx("Die Datei kann hier nicht direkt gespeichert werden. Inhalt kopieren und als ", "The file cannot be saved directly here. Copy the content and save it as ") + filename + tx(" speichern.", ".");
+  document.getElementById("export-text").value = data;
+  p.hidden = false;
+}
+function onImport(file) {
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const obj = JSON.parse(fr.result);
+      if (!obj || typeof obj !== "object" || !(obj.sw || obj.vp || obj.rb)) throw new Error("shape");
+      const keep = savedState.meta.savedAt;
+      state = withDefaults(obj); state.meta.savedAt = keep;
+      saveDraft(); render();
+      statusMsg = tx("Szenario geladen – noch nicht für alle gespeichert", "Scenario loaded – not saved for everyone yet"); renderStatus();
+      setTimeout(() => { statusMsg = ""; renderStatus(); }, 3000);
+    } catch (e) {
+      statusMsg = tx("Die Datei ist kein Szenario dieses Planers.", "The file is not a scenario of this planner."); renderStatus();
+      setTimeout(() => { statusMsg = ""; renderStatus(); }, 4000);
+    }
+  };
+  fr.readAsText(file);
+}
+function pageHTML(saved) {
+  const styleEl = document.getElementById("pp-style"), appEl = document.getElementById("pp-app");
+  const json = JSON.stringify(saved).replace(/</g, "\\u003c");
+  const SC = "scr" + "ipt";
+  return "<!doctype html><html><head><meta charset=utf8><meta name=viewport content=\"width=device-width,initial-scale=1,viewport-fit=cover\"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body>" +
+    "<title>U5 Arenen Pflanzplaner</title>\n<meta name=\"claude:viewport-fit-sides\" content=\"cover\">\n" +
+    "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap\">\n" +
+    "<style id=\"pp-style\">" + styleEl.textContent + "</style>\n<div id=\"app\"></div>\n" +
+    "<" + SC + " type=\"application/json\" id=\"saved-state\">" + json + "</" + SC + ">\n" +
+    "<" + SC + " id=\"pp-app\">" + appEl.textContent + "</" + SC + ">\n</body></html>";
+}
+async function saveForAll() {
+  if (!artifactNS || busy || readOnly) return;
+  busy = true; statusMsg = tx("Speichert …", "Saving …"); renderStatus();
+  const toSave = clone(state);
+  toSave.meta.savedAt = new Date().toISOString();
+  try {
+    await artifactNS.publish(pageHTML(toSave));
+    lsDel(STORE_DRAFT);
+    statusMsg = tx("Gespeichert – die Seite lädt neu", "Saved – the page reloads");
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "conflict") statusMsg = tx("Eine neuere Version wird geladen. Ihr Entwurf bleibt in diesem Browser.", "A newer version is loading. Your draft stays in this browser.");
+    else if (["not_writer", "not_granted", "consent_required", "capability_disabled", "capability_removed", "not_declared"].indexOf(code) >= 0) { readOnly = true; statusMsg = ""; }
+    else if (code === "rate_limited") statusMsg = tx("Zu viele Speichervorgänge. Bitte kurz warten.", "Too many saves. Please wait a moment.");
+    else statusMsg = tx("Speichern ist fehlgeschlagen. Bitte erneut versuchen.", "Saving failed. Please try again.");
+  }
+  busy = false; renderStatus();
+  if (statusMsg && !/neu|reload/i.test(statusMsg)) setTimeout(() => { statusMsg = ""; renderStatus(); }, 5000);
+}
+
+/* ---------------------------------------------------------------- events */
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (!el.dataset || !el.dataset.path || el.dataset.rr != null || el.dataset.bool) return;
+  if (el.tagName === "SELECT") return;
+  if (setFromInput(el)) changed(false);
+});
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.id === "file-import") { if (el.files && el.files[0]) onImport(el.files[0]); el.value = ""; return; }
+  if (!el.dataset || !el.dataset.path) return;
+  if (el.tagName === "SELECT" || el.dataset.bool || el.dataset.rr != null) {
+    if (!setFromInput(el)) return;
+    if (el.dataset.rr && el.dataset.rr !== "1") applyPreset(el.dataset.rr);
+    changed(true);
+  }
+});
+document.addEventListener("click", e => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.lang) { LANG = t.dataset.lang; ui.lang = LANG; lsSet(STORE_UI, ui); render(); return; }
+  if (t.dataset.tab) { ui.tab = t.dataset.tab; lsSet(STORE_UI, ui); render(); window.scrollTo({ top: 0, behavior: "auto" }); return; }
+  if (t.dataset.act) onAct(t);
+});
+document.addEventListener("keydown", e => {
+  const t = e.target;
+  if (t.getAttribute && t.getAttribute("role") === "tab" && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+    const i = TABS.indexOf(ui.tab), n = (i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length;
+    ui.tab = TABS[n]; lsSet(STORE_UI, ui); render();
+    const nb = document.querySelector(`[role="tab"][data-tab="${ui.tab}"]`); if (nb) nb.focus();
+  }
+});
+
+render();
+if (window.claude && typeof window.claude.use === "function") {
+  window.claude.use("artifact").then(ns => { artifactNS = ns; renderStatus(); }, () => {});
+  window.claude.use("downloads").then(ns => { downloadsNS = ns; }, () => {});
+}
+})();
+</script>
+</body>
+</html>
