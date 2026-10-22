@@ -18,7 +18,19 @@ Er zeigt drei Bereiche: **Mini-Stadtwaldgarten**, **Vorplatz** und **Randbereich
 - Massen je Bereich und gesamt, Export als CSV (für die BIM-Planung).
 - Änderungen bleiben in Ihrem Browser gespeichert. **Teilen:** „Szenario als JSON“ exportieren und weitergeben; andere laden die Datei mit „JSON laden“.
 
-## GitHub Pages aktivieren
+## Teilen nur über den Link (Netlify Drop)
+
+Die Seite trägt `noindex`: Suchmaschinen listen sie nicht. Wer den Link hat, kann sie öffnen und weitergeben.
+
+1. `index.html` und `_headers` in einen Ordner legen (oder die ZIP-Datei nutzen).
+2. https://app.netlify.com/drop öffnen und den Ordner auf die Seite ziehen.
+3. Die Website mit einem kostenlosen Netlify-Konto übernehmen („claim“), damit sie bestehen bleibt.
+4. Die Adresse (`….netlify.app`) nur an die gewünschten Personen schicken.
+5. **Aktualisieren:** im Netlify-Dashboard den neuen Ordner auf das bestehende Projekt ziehen. Die Adresse bleibt gleich.
+
+## GitHub Pages (öffentlich)
+
+GitHub Pages macht die Seite öffentlich und leicht auffindbar. Für das Teilen nur über den Link stattdessen Netlify Drop nutzen und dieses Repository auf „Private“ stellen.
 
 1. Repository → **Settings** → **Pages**.
 2. Unter *Build and deployment*: **Source = Deploy from a branch**.
