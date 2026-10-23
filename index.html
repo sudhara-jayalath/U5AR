@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="referrer" content="no-referrer">
-<meta name="description" content="Interaktiver Pflanzplaner für die U5-Haltestelle Arenen: Mini-Stadtwaldgarten, Vorplatz und Randbereich mit Schnitten, Ökologie-Kennwerten, Pflanzlisten und Massen.">
+<meta name="description" content="Interaktiver Pflanzplaner für die U5-Haltestelle Arenen: Mini-Stadtwaldgarten, Vorplatz und Randbereich RA–RE mit Pflanzkonzepten, Schnitten, Pflanzschema, Ökologie-Kennwerten, Pflanzlisten und Massen.">
 <title>U5 Arenen Pflanzplaner</title>
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -192,6 +192,27 @@ details.custom label { display: grid; gap: 3px; font-size: 12.5px; color: var(--
 .foot { font-size: 13px; color: var(--muted); display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 12px; }
 .foot a { color: var(--water); }
 .foot ul { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+/* planting concepts & pattern */
+.ccards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.ccard { text-align: left; background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 6px; align-content: start; cursor: pointer; color: var(--ink); font: inherit; }
+.ccard:hover { border-color: var(--moss); }
+.ccard[aria-pressed="true"] { border: 2px solid var(--moss); background: var(--moss-soft); padding: 9px 11px; }
+.ccard .cn { font: 700 1.05rem var(--f-display); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.ccard .cs { font-size: 12.5px; color: var(--muted); }
+.ccard .cg { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; font-size: 13.5px; }
+.ccard .cg span:nth-child(odd) { color: var(--muted); }
+.ccard .cg span:nth-child(even) { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.s-plan { fill: var(--moss-soft); stroke: var(--line); stroke-width: 1; }
+.s-dot-main { fill: var(--moss); }
+.s-dot-pio { fill: var(--moss-2); }
+.s-dot-und { fill: var(--soil); }
+.s-trupp { fill: none; stroke: var(--moss); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: var(--muted); align-items: center; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; background: var(--moss); }
+.legend i.pio { background: var(--moss-2); }
+.legend i.und { background: var(--soil); }
+table.sched input.w5 { width: 5.2em; }
+table.sched tfoot td { border-top: 1px solid var(--line); border-bottom: 0; }
 @media (max-width: 640px) {
   .tb { grid-template-columns: minmax(0, 1fr); }
   .tb-right { justify-items: start; }
@@ -285,7 +306,14 @@ const CAT = {
   molcae: { b: "Molinia caerulea", de: "Pfeifengras", l: "herb", h: [0.5, 1.0], m: 3, o: "v" },
   carrem: { b: "Carex remota", de: "Winkel-Segge", l: "herb", h: [0.3, 0.6], m: 3, o: "v" },
   lysnem: { b: "Lysimachia nemorum", de: "Hain-Gilbweiderich", l: "herb", h: [0.1, 0.2], m: 3, o: "v" },
-  ficver: { b: "Ficaria verna", de: "Scharbockskraut", l: "herb", h: [0.05, 0.15], m: 3, o: "v", t: 1, bee: 1 }
+  ficver: { b: "Ficaria verna", de: "Scharbockskraut", l: "herb", h: [0.05, 0.15], m: 3, o: "v", t: 1, bee: 1 },
+  salcin: { b: "Salix cinerea", de: "Grau-Weide", l: "shrub", h: [3, 6], m: 3, o: "v", bee: 1 },
+  salpur: { b: "Salix purpurea", de: "Purpur-Weide", l: "shrub", h: [2, 6], m: 3, o: "v", bee: 1 },
+  salvim: { b: "Salix viminalis", de: "Korb-Weide", l: "shrub", h: [3, 8], m: 3, o: "v", bee: 1 },
+  filulm: { b: "Filipendula ulmaria", de: "Echtes Mädesüß", l: "herb", h: [0.5, 1.5], m: 3, o: "v", bee: 1 },
+  lytsal: { b: "Lythrum salicaria", de: "Blut-Weiderich", l: "herb", h: [0.5, 1.2], m: 3, o: "v", bee: 1 },
+  lysvul: { b: "Lysimachia vulgaris", de: "Gewöhnlicher Gilbweiderich", l: "herb", h: [0.5, 1.2], m: 3, o: "v", bee: 1 },
+  iripse: { b: "Iris pseudacorus", de: "Sumpf-Schwertlilie", l: "herb", h: [0.6, 1.0], m: 3, o: "v", t: 1, bee: 1 }
 };
 const LAYERS = {
   shrub: ["Strauch", "Shrub"], tree1: ["Baum 1. Ordnung", "Tree, 1st order"], tree2: ["Baum 2. Ordnung", "Tree, 2nd order"],
@@ -310,7 +338,7 @@ function abbr(b) {
 
 /* ---------------------------------------------------------------- defaults (from the Phase 3 workbooks, 22.10.2026) */
 const DEFAULTS = {
-  meta: { savedAt: "", version: 1 },
+  meta: { savedAt: "", version: 2 },
   custom: {},
   sw: {
     islands: [
@@ -339,32 +367,43 @@ const DEFAULTS = {
     root: "bern", pit: 1.5, ext: 1.1, gw: 1.8, clear: 0.3, auto: true, plaza: 5000, fll: 12, cb: 2.5
   },
   rb: {
-    total: 5300, mantel: 1750, saumShare: 0.2, pathLen: 400, stripW: 0.625, feucht: 600,
-    char: "buei", dens: "forest",
-    wk: [
-      { id: "querob", s: 0.32, d: 6000 }, { id: "quepet", s: 0.20, d: 6000 }, { id: "fagsyl", s: 0.15, d: 8000 }, { id: "betpen", s: 0.10, d: 3000 },
-      { id: "sorauc", s: 0.08, d: 3500 }, { id: "poptre", s: 0.05, d: 3000 }, { id: "fraaln", s: 0.05, d: 5000 }, { id: "ilexaq", s: 0.05, d: 4000 }
+    areas: [
+      { id: "RA", total: 605.9, sa: 0, wm: 219.8, wk: 386.1, we: 0 },
+      { id: "RB", total: 529.3, sa: 47.9, wm: 174.4, wk: 306.88, we: 0 },
+      { id: "RC", total: 1872.7, sa: 23.8, wm: 508.4, wk: 1340.5, we: 0 },
+      { id: "RD", total: 996.5, sa: 152.2, wm: 323.1, wk: 521.2, we: 0 },
+      { id: "RE", total: 1206.6, sa: 21.2, wm: 218.4, wk: 810.5, we: 156.4 }
     ],
-    fb: [
-      { id: "alnglu", s: 0.30, d: 3000 }, { id: "ulmlae", s: 0.15, d: 3500 }, { id: "querob", s: 0.20, d: 6000 }, { id: "betpub", s: 0.10, d: 3000 },
-      { id: "prupad", s: 0.07, d: 4000 }, { id: "fraaln", s: 0.08, d: 5000 }, { id: "vibopu", s: 0.05, d: 5000 }, { id: "salaur", s: 0.05, d: 5000 }
+    concept: "trupp", truppSize: 20, fac: 1, char: "buei",
+    seedType: "rasen", seedLawn: 20, seedHerb: 3, sw: 0.75,
+    wk: [
+      { id: "querob", s: 0.32, d: [6000, 2700, 450] }, { id: "quepet", s: 0.20, d: [6000, 2700, 450] }, { id: "fagsyl", s: 0.15, d: [8000, 2700, 450] },
+      { id: "betpen", s: 0.10, d: [3000, 1500, 450] }, { id: "sorauc", s: 0.08, d: [3500, 1500, 450] }, { id: "poptre", s: 0.05, d: [3000, 1500, 450] },
+      { id: "fraaln", s: 0.05, d: [5000, 3000, 2000] }, { id: "ilexaq", s: 0.05, d: [4000, 3000, 2000] }
     ],
     wm: [
-      { id: "coravel", s: 0.16, d: 6667 }, { id: "fraaln", s: 0.10, d: 6667 }, { id: "sorauc", s: 0.10, d: 5000 }, { id: "cramon", s: 0.08, d: 6667 },
-      { id: "pruspi", s: 0.10, d: 6667 }, { id: "roscan", s: 0.08, d: 6667 }, { id: "vibopu", s: 0.07, d: 6667 }, { id: "salcap", s: 0.05, d: 6667 },
-      { id: "ilexaq", s: 0.05, d: 4000 }, { id: "cytsco", s: 0.04, d: 6667 }, { id: "betpen", s: 0.06, d: 3000 }, { id: "pruavi", s: 0.06, d: 3000 },
-      { id: "malsyl", s: 0.05, d: 3000 }
+      { id: "coravel", s: 0.16, d: [6667, 4444, 3000] }, { id: "fraaln", s: 0.10, d: [6667, 4444, 3000] }, { id: "sorauc", s: 0.10, d: [5000, 1500, 1000] },
+      { id: "cramon", s: 0.08, d: [6667, 4444, 3000] }, { id: "pruspi", s: 0.10, d: [6667, 4444, 3000] }, { id: "roscan", s: 0.08, d: [6667, 4444, 3000] },
+      { id: "vibopu", s: 0.07, d: [6667, 4444, 3000] }, { id: "salcap", s: 0.05, d: [6667, 4444, 3000] }, { id: "ilexaq", s: 0.05, d: [4000, 3000, 2000] },
+      { id: "cytsco", s: 0.04, d: [6667, 3000, 2000] }, { id: "betpen", s: 0.06, d: [3000, 1500, 1000] }, { id: "pruavi", s: 0.06, d: [3000, 1500, 1000] },
+      { id: "malsyl", s: 0.05, d: [3000, 1500, 1000] }
+    ],
+    we: [
+      { id: "alnglu", s: 0.25, d: [3000, 1500, 600] }, { id: "ulmlae", s: 0.10, d: [3500, 1500, 600] }, { id: "salcin", s: 0.15, d: [6667, 4444, 3000] },
+      { id: "salaur", s: 0.10, d: [6667, 4444, 3000] }, { id: "salpur", s: 0.10, d: [6667, 4444, 3000] }, { id: "salvim", s: 0.05, d: [6667, 4444, 3000] },
+      { id: "fraaln", s: 0.10, d: [6667, 4444, 3000] }, { id: "vibopu", s: 0.10, d: [6667, 4444, 3000] }, { id: "prupad", s: 0.05, d: [4000, 2000, 800] }
     ],
     hk: [
       { id: "desfle", s: 0.25 }, { id: "luzpil", s: 0.15 }, { id: "maibif", s: 0.10 }, { id: "oxaace", s: 0.10 }, { id: "drycar", s: 0.10 },
       { id: "drydil", s: 0.05 }, { id: "vacmyr", s: 0.10 }, { id: "anenem", s: 0.10 }, { id: "holmol", s: 0.05 }
     ],
-    hf: [
-      { id: "molcae", s: 0.20 }, { id: "carrem", s: 0.20 }, { id: "descesp", s: 0.15 }, { id: "athfil", s: 0.15 },
-      { id: "lysnem", s: 0.10 }, { id: "ficver", s: 0.10 }, { id: "drycar", s: 0.10 }
+    he: [
+      { id: "filulm", s: 0.20 }, { id: "lytsal", s: 0.15 }, { id: "lysvul", s: 0.15 }, { id: "descesp", s: 0.15 },
+      { id: "carrem", s: 0.15 }, { id: "athfil", s: 0.10 }, { id: "iripse", s: 0.10 }
     ],
-    initShare: 0.10, initDens: 6, seedSaum: 3, seedLawn: 20, topsoil: 0.20, startArea: 250,
-    gw: 1.5, guard: true, W: 1.3, speed: "70", wSaum: 2, wStrauch: 4, wBaum: 4, hWK: 15, hFB: 12, hWM: 5
+    initShare: 0.10, initDens: 6, startArea: 250,
+    top: { sa: 0.2, wm: 0.2, wk: 0.2, we: 0.2 }, h: { sa: 0.3, wm: 5, wk: 15, we: 8 },
+    gw: 1.5, guard: true, W: 1.3, speed: "70", wStrauch: 4, wBaum: 4
   }
 };
 
@@ -421,28 +460,34 @@ const RB_CHAR = {
   bu: { name: ["Buchenbetonter Wald", "Beech-dominated forest"],
     wk: { querob: 0.20, quepet: 0.15, fagsyl: 0.35, betpen: 0.08, sorauc: 0.07, poptre: 0.03, fraaln: 0.04, ilexaq: 0.08 } }
 };
-const RB_Q = {
-  buei: {
-    space: ["Eichen-Buchen-Wald mit Stechpalme im Unterstand. Nach Jahrzehnten ein geschlossenes, hallenartiges Kronendach.", "Oak-beech forest with holly in the understory. After decades a closed, hall-like canopy."],
-    eco: ["Charakter wie LRT 9190 / 9120: saure, nährstoffarme Böden, artenarme, typische Krautschicht.", "Character as LRT 9190 / 9120: acidic, nutrient-poor soil, a species-poor but typical herb layer."],
-    care: ["Buche in Gruppen pflanzen. In den ersten Jahren 2–3-mal freischneiden.", "Plant beech in groups. Cut back the weeds 2–3 times per year in the first years."]
-  },
-  eibi: {
-    space: ["Lichter Eichen-Birkenwald: schneller grün, offenere Struktur mit Durchblicken.", "Open oak-birch forest: greener sooner, a more open structure with views through."],
-    eco: ["Mehr Pionierarten, viel Licht für Draht-Schmiele und Heidelbeere.", "More pioneer species, plenty of light for wavy hair-grass and bilberry."],
-    care: ["Birken später teilweise entnehmen, damit die Eichen Platz bekommen.", "Later remove part of the birches so the oaks get space."]
-  },
-  bu: {
-    space: ["Dunkler, buchenbetonter Wald mit wenig Unterwuchs.", "Dark, beech-dominated forest with little undergrowth."],
-    eco: ["Starke Beschattung; wenig Licht für die Krautschicht.", "Heavy shade; little light for the herb layer."],
-    care: ["Buche braucht Schutz vor Spätfrost und voller Sonne (Birken-Vorwald).", "Beech needs shelter from late frost and full sun (birch nurse trees)."]
-  }
+const RB_CONCEPTS = {
+  forst: { i: 0, name: ["Forstlich", "Forstlich (forestry)"], sub: ["Reihenpflanzung, forstlicher Standard", "Row planting, forestry standard"],
+    q: {
+      space: ["Dichte Reihen und schneller Bestandesschluss. Nach 10–15 Jahren ein geschlossenes Jungwaldbild.", "Dense rows that close fast. After 10–15 years a closed young forest."],
+      eco: ["Forstlicher Standard für gerade, astfreie Stämme. In der Jugend wenig Licht für Kräuter.", "Forestry standard for straight, branch-free trunks. Little light for herbs while young."],
+      care: ["Viele Pflanzen und viel Freischneiden. Später werden die meisten Bäume durchforstet.", "Many plants and much weed cutting. Later most trees are removed by thinning."]
+    } },
+  trupp: { i: 1, name: ["Trupp", "Trupp (groups)"], sub: ["Eiche und Buche in Gruppen, dazwischen Sukzession", "Oak and beech in groups, succession between"],
+    q: {
+      space: ["Gruppen von Eiche und Buche mit offenen Bereichen dazwischen. Wilder, strukturreicher Waldcharakter.", "Groups of oak and beech with open parts between. A wild forest character with much structure."],
+      eco: ["Pioniere, Kräuter und Sukzession zwischen den Trupps. In Versuchen wuchsen Trupps fast wie Reihen, mit besserer Stammform.", "Pioneers, herbs and succession between the Trupps. In trials Trupps grew almost like rows, with better stem form."],
+      care: ["Etwa die halbe Pflanzenzahl. Pflege auf die Trupps konzentrieren. Verbissschutz prüfen.", "About half the plants. Focus care on the Trupps. Check protection against browsing."]
+    } },
+  hain: { i: 2, name: ["Hain", "Hain (grove)"], sub: ["Wenige Heister im Weitverband", "Few Heister at wide spacing"],
+    q: {
+      space: ["Lichter Hain mit wenigen größeren Bäumen. Schnelles Bild, aber eher Park- als Waldcharakter.", "An open grove with few larger trees. A fast image, but more park than forest."],
+      eco: ["Viel Licht am Boden, wenig Waldklima. Weniger Deckung für Tiere.", "Much light on the ground, little forest climate. Less cover for animals."],
+      care: ["Mehr Mahd zwischen den Bäumen und ein höherer Preis je Baum.", "More mowing between the trees and a higher price per tree."]
+    } }
 };
-const RB_DENS = {
-  forest: { f: 1.0, name: ["Forstlich (100 %)", "Forestry (100 %)"] },
-  reduced: { f: 0.7, name: ["Reduziert (70 %)", "Reduced (70 %)"] },
-  initial: { f: 0.5, name: ["Initial (50 %) + Sukzession", "Initial (50 %) + succession"] }
-};
+const RB_MAIN = ["querob", "quepet", "fagsyl"];
+const isTreeLayer = l => l === "tree1" || l === "tree2" || l === "pioneer" || l === "street";
+function rbCI(S) { const c = RB_CONCEPTS[(S || state.rb).concept]; return c ? c.i : 1; }
+function rbConceptName(S) { const c = RB_CONCEPTS[(S || state.rb).concept] || RB_CONCEPTS.trupp; return tx(c.name[0], c.name[1]); }
+const rbDens = (x, k) => (Array.isArray(x.d) ? (+x.d[k] || 0) : (+x.d || 0));
+const DEF_D3 = { tree1: [6000, 2700, 450], tree2: [3500, 1500, 450], pioneer: [3000, 1500, 450], shrub: [6667, 4444, 3000], street: [3000, 1500, 450] };
+const defD3 = l => (DEF_D3[l] || [5000, 3000, 1500]).slice();
+const RB_ZONES = [["sa", ["Saum", "Saum (edge strip)"]], ["wm", ["Waldmantel", "Waldmantel (forest edge)"]], ["wk", ["Waldkern", "Waldkern (forest core)"]], ["we", ["Weidengebüsch & Erlensaum", "Willow scrub & alder fringe"]]];
 
 /* ---------------------------------------------------------------- state */
 let SAVED = null;
@@ -450,9 +495,13 @@ try { SAVED = JSON.parse(document.getElementById("saved-state").textContent); } 
 function withDefaults(s) {
   const d = clone(DEFAULTS);
   if (!s || typeof s !== "object") return d;
-  ["sw", "vp", "rb"].forEach(k => { if (s[k] && typeof s[k] === "object") d[k] = Object.assign(d[k], s[k]); });
+  const ver = (s.meta && +s.meta.version) || 1;
+  ["sw", "vp", "rb"].forEach(k => {
+    if (k === "rb" && ver < 2) return; /* Randbereich model changed in version 2 (areas RA–RE) */
+    if (s[k] && typeof s[k] === "object") d[k] = Object.assign(d[k], s[k]);
+  });
   d.custom = Object.assign({}, s.custom || {});
-  d.meta = Object.assign({}, d.meta, s.meta || {});
+  d.meta = Object.assign({}, d.meta, s.meta || {}, { version: DEFAULTS.meta.version });
   return d;
 }
 const savedState = withDefaults(SAVED);
@@ -581,52 +630,100 @@ function compVP(S) {
     eco: eco(trees.map(t => ({ id: t.id, n: t.n, fit: t.fit }))), warns };
 }
 function compRB(S) {
-  const saum = S.mantel * S.saumShare, wmA = S.mantel - saum, lawn = S.pathLen * S.stripW, core = S.total - S.mantel - lawn - S.feucht;
-  const f = (RB_DENS[S.dens] || RB_DENS.forest).f;
-  const nCore = needFor(S.gw, "tree"), nWet = needFor(0.4, "tree"), nShrub = needFor(S.gw, "shrub"), nWetH = needFor(0.4, "shrub");
-  const zone = (list, area, need) => list.map(x => ({ id: x.id, s: x.s, d: x.d, n: Math.round(Math.max(0, area) * x.s * x.d * f / 10000), fit: fitOf(sp(x.id), need) }));
-  const wk = zone(S.wk, core, nCore), fb = zone(S.fb, S.feucht, nWet), wm = zone(S.wm, wmA, nShrub);
-  const hk = S.hk.map(x => ({ id: x.id, s: x.s, n: Math.round(Math.max(0, core) * S.initShare * S.initDens * x.s), fit: fitOf(sp(x.id), nShrub) }));
-  const hf = S.hf.map(x => ({ id: x.id, s: x.s, n: Math.round(Math.max(0, S.feucht) * S.initShare * S.initDens * x.s), fit: fitOf(sp(x.id), nWetH) }));
+  const ci = rbCI(S), fac = isFinite(+S.fac) ? +S.fac : 1;
+  const areas = S.areas.map(a => {
+    const v = { id: a.id, total: +a.total || 0, sa: +a.sa || 0, wm: +a.wm || 0, wk: +a.wk || 0, we: +a.we || 0 };
+    v.sum = v.sa + v.wm + v.wk + v.we;
+    v.diff = v.sum - v.total;
+    return v;
+  });
+  const tot = {};
+  ["total", "sa", "wm", "wk", "we", "sum"].forEach(k => { tot[k] = sum(areas.map(a => a[k])); });
+  const needT = needFor(S.gw, "tree"), needS = needFor(S.gw, "shrub"), wetT = needFor(0.4, "tree"), wetS = needFor(0.4, "shrub");
+  const zoneItems = (list, z, nT, nS) => list.map(x => {
+    const s = sp(x.id), tree = isTreeLayer(s.l), d = rbDens(x, ci);
+    const per = areas.map(a => Math.round(a[z] * x.s * d * fac / 10000));
+    return { id: x.id, s: x.s, d, per, n: sum(per), tree, fit: fitOf(s, tree ? nT : nS) };
+  });
+  const wk = zoneItems(S.wk, "wk", needT, needS), wm = zoneItems(S.wm, "wm", needT, needS), we = zoneItems(S.we, "we", wetT, wetS);
+  const herbItems = (list, z, need) => list.map(x => {
+    const per = areas.map(a => Math.round(a[z] * S.initShare * S.initDens * x.s));
+    return { id: x.id, s: x.s, per, n: sum(per), fit: fitOf(sp(x.id), need) };
+  });
+  const hk = herbItems(S.hk, "wk", needS), he = herbItems(S.he, "we", wetS);
+  const seedRate = S.seedType === "kraut" ? +S.seedHerb : +S.seedLawn;
+  const all = wk.concat(wm, we);
+  const size = Math.max(1, Math.round(+S.truppSize || 20));
+  const top = S.top || {};
+  const per = areas.map((a, k) => {
+    const woody = sum(all.map(x => x.per[k])), trees = sum(all.filter(x => x.tree).map(x => x.per[k]));
+    const main = sum(wk.filter(x => RB_MAIN.indexOf(x.id) >= 0).map(x => x.per[k]));
+    const wa = a.wm + a.wk + a.we;
+    return { id: a.id, woody, trees, shrubs: woody - trees, trupps: ci === 1 ? Math.round(main / size) : 0,
+      start: S.startArea > 0 ? Math.round(a.wk / S.startArea) : 0,
+      herbs: sum(hk.map(x => x.per[k])) + sum(he.map(x => x.per[k])),
+      seed: a.sa * seedRate / 1000,
+      top: a.sa * (+top.sa || 0) + a.wm * (+top.wm || 0) + a.wk * (+top.wk || 0) + a.we * (+top.we || 0),
+      dens: wa > 0 ? woody / wa * 10000 : 0 };
+  });
+  const T = k => sum(per.map(p => p[k]));
+  const cmp = [0, 1, 2].map(k => {
+    let trees = 0, shrubs = 0;
+    [["wk", S.wk], ["wm", S.wm], ["we", S.we]].forEach(([z, list]) => list.forEach(x => {
+      const v = tot[z] * x.s * rbDens(x, k) * fac / 10000;
+      if (isTreeLayer(sp(x.id).l)) trees += v; else shrubs += v;
+    }));
+    const wkTrees = sum(S.wk.filter(x => isTreeLayer(sp(x.id).l)).map(x => x.s * rbDens(x, k))) * fac;
+    const wkAll = sum(S.wk.map(x => x.s * rbDens(x, k))) * fac;
+    return { trees, shrubs, woody: trees + shrubs, wkTrees, spacing: wkAll > 0 ? 1 / Math.sqrt(wkAll / 10000) : 0 };
+  });
   const crit = S.speed === "100" ? 7.5 : 4.5;
-  const treeStart = S.wSaum + S.wStrauch;
+  const treeStart = (+S.sw || 0) + (+S.wStrauch || 0);
   const limit = S.guard ? S.W : crit;
   const okTree = treeStart >= limit - 1e-9;
-  const nWK = sum(wk.map(x => x.n)), nFB = sum(fb.map(x => x.n)), nWM = sum(wm.map(x => x.n));
-  const woodyArea = Math.max(0, core) + S.feucht + wmA;
-  const charShare = nWK ? sum(wk.filter(x => ["querob", "quepet", "fagsyl"].indexOf(x.id) >= 0).map(x => x.n)) / nWK : 0;
+  const nWK = sum(wk.map(x => x.n));
+  const woody = T("woody"), trees = T("trees"), woodyArea = tot.wm + tot.wk + tot.we;
   const warns = [];
-  if (core < 0) warns.push({ lvl: "bad", t: tx("Die Zonen sind größer als die Gesamtfläche.", "The zones are larger than the total area.") });
-  [["wk", "Waldkern"], ["fb", "Feuchtbereich"], ["wm", "Waldmantel"], ["hk", tx("Krautschicht Waldkern", "Herb layer core")], ["hf", tx("Krautschicht Feuchtbereich", "Herb layer moist zone")]].forEach(([k, lab]) => {
+  areas.forEach(a => {
+    if (Math.abs(a.diff) > 0.5) warns.push({ lvl: "warn", t: tx(`${a.id}: Die Zonen (${nf(a.sum, 1)} m²) weichen von der Plansumme (${nf(a.total, 1)} m²) ab.`, `${a.id}: the zones (${nf(a.sum, 1)} m²) differ from the plan total (${nf(a.total, 1)} m²).`) });
+  });
+  [["wk", "Waldkern"], ["wm", "Waldmantel"], ["we", "Weidengebüsch & Erlensaum"], ["hk", tx("Krautschicht Waldkern", "Herb layer core")], ["he", tx("Krautschicht Weidengebüsch", "Herb layer willow scrub")]].forEach(([k, lab]) => {
     const s = sum(S[k].map(x => x.s));
-    if (Math.abs(s - 1) > 0.005) warns.push({ lvl: "bad", t: tx(`Anteile ${lab}: ${pct(s)} statt 100 %.`, `Shares ${lab}: ${pct(s)} instead of 100 %.`) });
+    if (S[k].length && Math.abs(s - 1) > 0.005) warns.push({ lvl: "bad", t: tx(`Anteile ${lab}: ${pct(s)} statt 100 %.`, `Shares ${lab}: ${pct(s)} instead of 100 %.`) });
   });
   if (!okTree) warns.push({ lvl: "bad", t: S.guard
     ? tx(`Bäume beginnen ${nf(treeStart, 1)} m hinter der Leitplanke, innerhalb des Wirkungsbereichs W = ${nf(S.W, 1)} m.`, `Trees start ${nf(treeStart, 1)} m behind the guardrail, inside the working width W = ${nf(S.W, 1)} m.`)
     : tx(`Ohne Leitplanke: Bäume beginnen ${nf(treeStart, 1)} m vom Fahrbahnrand, innerhalb des kritischen Abstands (${nf(crit, 1)} m).`, `No guardrail: trees start ${nf(treeStart, 1)} m from the road edge, inside the critical distance (${nf(crit, 1)} m).`) });
-  const badCore = wk.filter(x => x.n > 0 && x.fit === "bad").map(x => abbr(sp(x.id).b));
-  if (badCore.length) warns.push({ lvl: "bad", t: tx("Waldkern: bei diesem Grundwasserstand ungeeignet – ", "Core: not suitable at this groundwater level – ") + badCore.join(", ") + tx(". Feuchtbereich vergrößern?", ". Enlarge the moist zone?") });
-  const warnCore = wk.filter(x => x.n > 0 && x.fit === "warn").map(x => abbr(sp(x.id).b));
-  if (warnCore.length) warns.push({ lvl: "warn", t: tx("Waldkern: Staunässe prüfen – ", "Core: check waterlogging – ") + warnCore.join(", ") });
-  const badWet = fb.filter(x => x.n > 0 && x.fit !== "ok").map(x => abbr(sp(x.id).b));
-  if (badWet.length) warns.push({ lvl: "warn", t: tx("Feuchtbereich: Art verträgt Nässe nur bedingt – ", "Moist zone: species tolerates wet soil only partly – ") + badWet.join(", ") });
-  return { saum, wmA, lawn, core, f, wk, fb, wm, hk, hf, crit, treeStart, limit, okTree, nWK, nFB, nWM, woody: nWK + nFB + nWM,
-    dens: woodyArea > 0 ? (nWK + nFB + nWM) / woodyArea * 10000 : 0, charShare,
-    seedSaum: saum * S.seedSaum / 1000, seedLawn: lawn * S.seedLawn / 1000,
-    start: S.startArea > 0 ? Math.round(Math.max(0, core) / S.startArea) : 0, topsoil: S.total * S.topsoil,
-    edgeLen: (S.wSaum + S.wStrauch + S.wBaum) > 0 ? S.mantel / (S.wSaum + S.wStrauch + S.wBaum) : 0,
-    nHK: sum(hk.map(x => x.n)), nHF: sum(hf.map(x => x.n)), eco: eco(wk.concat(fb, wm)), warns };
+  const names = (list, f) => Array.from(new Set(list.filter(f).map(x => abbr(sp(x.id).b))));
+  const badCore = names(wk.concat(wm), x => x.n > 0 && x.fit === "bad");
+  if (badCore.length) warns.push({ lvl: "bad", t: tx("Waldkern / Waldmantel: bei diesem Grundwasserstand ungeeignet – ", "Core / edge: not suitable at this groundwater level – ") + badCore.join(", ") });
+  const warnCore = names(wk.concat(wm), x => x.n > 0 && x.fit === "warn");
+  if (warnCore.length) warns.push({ lvl: "warn", t: tx("Waldkern / Waldmantel: Staunässe prüfen – ", "Core / edge: check waterlogging – ") + warnCore.join(", ") });
+  const badWet = names(we, x => x.n > 0 && x.fit !== "ok");
+  if (badWet.length) warns.push({ lvl: "warn", t: tx("Weidengebüsch: Art verträgt Nässe nur bedingt – ", "Willow scrub: species tolerates wet soil only partly – ") + badWet.join(", ") });
+  if (tot.we > 0) warns.push({ lvl: "warn", t: tx("Weidengebüsch & Erlensaum am Regenrückhaltebecken: keine Gehölze auf Dämmen oder Abdichtungen, Zu- und Ablauf freihalten. Mit dem Beckenbetreiber abstimmen.", "Willow scrub next to the retention basin: no woody plants on dams or sealing layers, keep inlet and outlet free. Coordinate with the basin operator.") });
+  if (ci === 1) warns.push({ lvl: "warn", t: tx("Trupp-Pflanzung: Verbissschutz prüfen (Kaninchen, Rehwild).", "Trupp planting: check protection against browsing (rabbits, deer).") });
+  const seedName = S.seedType === "kraut" ? tx("Regiosaatgut UG 1 – Saummischung (Kräuter und Gräser)", "Regional seed UG 1 – fringe mix (herbs and grasses)")
+    : tx("Regiosaatgut UG 1 – Rasenmischung", "Regional seed UG 1 – lawn mix");
+  return { ci, areas, tot, per, wk, wm, we, hk, he, cmp, crit, treeStart, limit, okTree, nWK, nWM: sum(wm.map(x => x.n)), nWE: sum(we.map(x => x.n)),
+    woody, trees, shrubs: woody - trees, trupps: T("trupps"), start: T("start"), nHerb: T("herbs"),
+    seed: T("seed"), topsoil: T("top"), seedRate, seedName, size,
+    dens: woodyArea > 0 ? woody / woodyArea * 10000 : 0,
+    charShare: nWK ? sum(wk.filter(x => RB_MAIN.indexOf(x.id) >= 0).map(x => x.n)) / nWK : 0,
+    largeOaks: Math.round(tot.wk / 10000 * 70), eco: eco(all), warns };
 }
 function compAll() { return { sw: compSW(state.sw), vp: compVP(state.vp), rb: compRB(state.rb) }; }
 
 /* ---------------------------------------------------------------- quantities (also CSV) */
 function qualSW(id) { return id === "ilexaq" ? "mB 60–80" : "Str. 2xv oB 100–150"; }
 function qualRB(zone, id) {
-  const s = sp(id);
+  const s = sp(id), tree = isTreeLayer(s.l);
+  if (tree && rbCI() === 2) return "Heister 2xv mB 150–200";
   if (id === "ilexaq" || id === "cytsco") return "Co. 40–60 cm";
+  if (zone === "we" && /^sal/.test(id)) return tx("Str. 2xv oB 60–100 oder Steckholz", "Str. 2xv oB 60–100 or cutting");
   if (s.l === "shrub") return "Str. 2xv oB 60–100";
   if (zone === "wm") return "Heister 2xv oB 100–150";
-  if (["querob", "quepet", "fagsyl"].indexOf(id) >= 0) return tx("Forstpflanze, verschult, 50–80 cm", "Forest plant, transplanted, 50–80 cm");
+  if (RB_MAIN.indexOf(id) >= 0) return tx("Forstpflanze, verschult, 50–80 cm", "Forest plant, transplanted, 50–80 cm");
   return tx("Forstpflanze, verschult, 80–120 cm", "Forest plant, transplanted, 80–120 cm");
 }
 const PCS = () => tx("St.", "pcs");
@@ -657,13 +754,25 @@ function rowsVP(R) {
 }
 function rowsRB(R) {
   const rows = [];
-  [["wk", "Waldkern"], ["fb", "Feuchtbereich"], ["wm", "Waldmantel"]].forEach(([k, lab]) => R[k].forEach(x => rows.push({ zone: lab, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: qualRB(k, x.id) })));
-  [["hk", tx("Krautschicht Waldkern", "Herb layer core")], ["hf", tx("Krautschicht Feuchtbereich", "Herb layer moist zone")]].forEach(([k, lab]) => R[k].forEach(x => rows.push({ zone: lab, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: "P9 / P11" })));
+  [["wk", "Waldkern"], ["wm", "Waldmantel"], ["we", "Weidengebüsch & Erlensaum"]].forEach(([k, lab]) => R[k].forEach(x => rows.push({ zone: lab, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: qualRB(k, x.id) })));
+  [["hk", tx("Krautschicht Waldkern", "Herb layer forest core")], ["he", tx("Krautschicht Weidengebüsch & Erlensaum", "Herb layer willow scrub")]].forEach(([k, lab]) => R[k].forEach(x => rows.push({ zone: lab, b: sp(x.id).b, de: sp(x.id).de, q: x.n, u: PCS(), note: tx("Initialpflanzung in Gruppen, P9 / P11", "Initial planting in groups, P9 / P11") })));
   const mat = tx("Material", "Material");
-  rows.push({ zone: mat, b: tx("Regiosaatgut UG 1 – Saum / Waldrand", "Regional seed UG 1 – fringe / forest edge"), de: "", q: R.seedSaum, u: "kg", note: "" });
-  rows.push({ zone: mat, b: tx("Regiosaatgut UG 1 – Rasen", "Regional seed UG 1 – lawn"), de: "", q: R.seedLawn, u: "kg", note: "" });
+  rows.push({ zone: mat, b: R.seedName, de: "", q: R.seed, u: "kg", note: "Saum, " + nf(R.seedRate, 0) + " g/m²" });
+  if (R.ci === 1) rows.push({ zone: mat, b: tx(`Trupps Eiche/Buche (à ${R.size} Pflanzen)`, `Trupps oak/beech (${R.size} plants each)`), de: "", q: R.trupps, u: PCS(), note: tx("Abstand ca. 10 m", "approx. 10 m apart") });
   rows.push({ zone: mat, b: tx("Startbäume Quercus (Option)", "Start trees Quercus (option)"), de: "", q: R.start, u: PCS(), note: "Heister 3xv mB 200–250" });
   rows.push({ zone: mat, b: tx("Oberboden (Option)", "Topsoil (option)"), de: "", q: R.topsoil, u: "m³", note: tx("Bodenkonzept offen", "Soil concept open") });
+  return rows;
+}
+function rowsRBAreas(R) {
+  const rows = [];
+  R.per.forEach(p => {
+    const z = "Randbereich " + p.id;
+    rows.push({ zone: z, b: tx("Gehölze gesamt", "Woody plants, total"), de: "", q: p.woody, u: PCS(), note: tx(`davon ${p.trees} Bäume, ${p.shrubs} Sträucher`, `incl. ${p.trees} trees, ${p.shrubs} shrubs`) });
+    if (R.ci === 1) rows.push({ zone: z, b: "Trupps", de: "", q: p.trupps, u: PCS(), note: "" });
+    rows.push({ zone: z, b: tx("Kräuter Initialpflanzung", "Herbs, initial planting"), de: "", q: p.herbs, u: PCS(), note: "" });
+    rows.push({ zone: z, b: tx("Saatgut Saum", "Seed, Saum"), de: "", q: p.seed, u: "kg", note: "" });
+    rows.push({ zone: z, b: tx("Oberboden (Option)", "Topsoil (option)"), de: "", q: p.top, u: "m³", note: "" });
+  });
   return rows;
 }
 function qtyText(q, u) {
@@ -777,34 +886,104 @@ function secVP(S, R) {
 
 /* section: Randbereich */
 function secRB(S, R) {
-  const road = 5, L = S.wSaum + S.wStrauch + S.wBaum, coreW = 14;
+  const road = 5, swd = Math.max(0, +S.sw || 0), L = swd + S.wStrauch + S.wBaum, coreW = 16, ci = R.ci;
   const xmin = -road - 0.5, xmax = L + coreW + 0.5;
-  const top = Math.max(S.hWK, 8) + 1.6, bottom = -(Math.max(S.gw, 1) + 0.8);
+  const top = Math.max(S.h.wk, 8) + 1.6, bottom = -(Math.max(S.gw, 1) + 0.8);
   const F = frame(xmin, xmax, bottom, top), X = F.X, Y = F.Y;
   let g = rect(X(xmin), Y(0), X(xmax) - X(xmin), Y(bottom) - Y(0), "s-ground");
   if (S.guard) g += rect(X(0), Y(top - 0.4), S.W * F.s, Y(0) - Y(top - 0.4), "s-w") + txt(X(S.W / 2), Y(top - 0.4) + 12, "W", "s-txt-ink", "middle");
   g += ln(X(R.crit), Y(top - 0.4), X(R.crit), Y(0), "s-thin") + txt(X(R.crit) + 3, Y(top - 0.4) + 26, tx(`krit. Abstand ${nf(R.crit, 1)} m`, `critical ${nf(R.crit, 1)} m`));
   g += rect(X(xmin), Y(0.1), X(-0.2) - X(xmin), 0.1 * F.s, "s-road") + txt(X(-road / 2), Y(0) + 14, tx("Fahrbahn", "road"), "s-txt", "middle");
-  if (S.guard) { g += ln(X(-0.1), Y(0), X(-0.1), Y(0.75), "s-col") + rect(X(-0.35), Y(0.75), 0.5 * F.s, 0.3 * F.s, "s-rail"); }
-  g += rect(X(0), Y(0.8), S.wSaum * F.s, 0.8 * F.s, "s-low");
+  if (S.guard) g += ln(X(-0.1), Y(0), X(-0.1), Y(0.75), "s-col") + rect(X(-0.35), Y(0.75), 0.5 * F.s, 0.3 * F.s, "s-rail");
+  const hs = Math.max(0.1, +S.h.sa || 0.3);
+  g += rect(X(0), Y(hs), swd * F.s, hs * F.s, "s-low");
   const nb = Math.max(2, Math.round(S.wStrauch / 1.3));
   for (let k = 0; k < nb; k++) {
-    const h = S.hWM * (0.7 + 0.3 * ((k * 37) % 10) / 10);
-    const cx = S.wSaum + (k + 0.5) * S.wStrauch / nb;
+    const h = S.h.wm * (0.7 + 0.3 * ((k * 37) % 10) / 10);
+    const cx = swd + (k + 0.5) * S.wStrauch / nb;
     g += ell(X(cx), Y(h / 2), (S.wStrauch / nb) * 0.62 * F.s, (h / 2) * F.s, k % 2 ? "s-shrub2" : "s-shrub");
   }
   const tree = (cx, h, rx) => {
     const bad = cx < R.limit - 1e-9;
     return ln(X(cx), Y(0), X(cx), Y(h * 0.45), bad ? "s-trunk-bad" : "s-trunk") + ell(X(cx), Y(h * 0.68), rx * F.s, h * 0.32 * F.s, "s-crown");
   };
-  const hBM = Math.min(S.hWK * 0.7, 12);
-  for (let cx = S.wSaum + S.wStrauch + 0.3; cx < L; cx += 2.5) g += tree(cx, hBM, 1.4);
-  for (let cx = L + 1.5; cx < xmax - 1; cx += 3) g += tree(cx, S.hWK, 2.0);
+  const hBM = Math.min(S.h.wk * 0.7, 12);
+  for (let cx = swd + S.wStrauch + 0.3; cx < L; cx += 2.5) g += tree(cx, hBM, 1.4);
+  if (ci === 1) {
+    for (let x = L + 1.2; x < xmax - 1; x += 8) { g += tree(x, S.h.wk, 1.8); if (x + 2 < xmax - 1) g += tree(x + 2, S.h.wk * 0.92, 1.6); }
+  } else {
+    const stp = ci === 0 ? 3 : 6;
+    for (let cx = L + 1.5; cx < xmax - 1; cx += stp) g += tree(cx, S.h.wk, ci === 0 ? 1.8 : 2.6);
+  }
   g += ln(X(xmin), Y(0), X(xmax), Y(0), "s-gline");
   g += ln(X(0), Y(-S.gw), X(xmax), Y(-S.gw), "s-gw") + txt(X(xmax) - 4, Y(-S.gw) + 13, `MHGW −${nf(S.gw, 2)} m`, "s-txt", "end");
-  const lab = [[S.wSaum / 2, "Saum"], [S.wSaum + S.wStrauch / 2, tx("Strauchmantel", "shrub mantle")], [S.wSaum + S.wStrauch + S.wBaum / 2, tx("Baummantel", "tree mantle")], [L + coreW / 2, "Waldkern"]];
-  lab.forEach(([x0, t]) => { g += txt(X(x0), Y(0) + 14, t, "s-txt", "middle"); });
+  g += txt(X(swd / 2), Y(0) + 26, "Saum", "s-txt", "middle");
+  [[swd + S.wStrauch / 2, tx("Strauchmantel", "shrub mantle")], [swd + S.wStrauch + S.wBaum / 2, tx("Baummantel", "tree mantle")], [L + coreW / 2, "Waldkern"]]
+    .forEach(([x0, t]) => { g += txt(X(x0), Y(0) + 14, t, "s-txt", "middle"); });
   return svg(F, g, tx("Schnitt Randbereich", "Section verge"));
+}
+function rng(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffled(list, rand) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+/* plan view: a 30 × 15 m sample of the Waldkern, drawn from the densities of the selected concept */
+function planRB(S, R) {
+  const Wm = 30, Hm = 15, A = Wm * Hm, ci = R.ci, fac = isFinite(+S.fac) ? +S.fac : 1, rand = rng(11);
+  const cls = id => (RB_MAIN.indexOf(id) >= 0 ? "main" : (isTreeLayer(sp(id).l) ? "pio" : "und"));
+  const items = S.wk.filter(x => x.s > 0).map(x => ({ id: x.id, c: cls(x.id), n: Math.round(A * x.s * rbDens(x, ci) * fac / 10000) }));
+  const expand = f => { const out = []; items.filter(f).forEach(i => { for (let k = 0; k < i.n; k++) out.push(i); }); return out; };
+  const pts = [], rings = [];
+  if (ci === 1) {
+    const main = expand(i => i.c === "main"), size = R.size, side = Math.ceil(Math.sqrt(size));
+    const nT = Math.round(main.length / size);
+    const cols = Math.max(1, Math.round(Math.sqrt(nT * Wm / Hm))), rows = Math.max(1, Math.ceil(nT / cols));
+    const half = side / 2 + 0.4;
+    for (let t = 0; t < nT; t++) {
+      let cx = (t % cols + 0.5) * Wm / cols + (rand() - 0.5) * 3, cy = (Math.floor(t / cols) + 0.5) * Hm / rows + (rand() - 0.5) * 2;
+      cx = Math.min(Wm - half, Math.max(half, cx));
+      cy = Math.min(Hm - half, Math.max(half, cy));
+      rings.push([cx, cy, side / 2 + 0.6]);
+      for (let k = 0; k < size; k++) pts.push({ x: cx + (k % side - (side - 1) / 2), y: cy + (Math.floor(k / side) - (side - 1) / 2), c: "main" });
+    }
+    const free = (x, y) => rings.every(([cx, cy, r]) => Math.hypot(cx - x, cy - y) > r + 0.4);
+    shuffled(expand(i => i.c !== "main"), rand).forEach(it => {
+      let x, y, k = 0;
+      do { x = 0.6 + rand() * (Wm - 1.2); y = 0.6 + rand() * (Hm - 1.2); k++; } while (!free(x, y) && k < 40);
+      pts.push({ x, y, c: it.c });
+    });
+  } else {
+    const list = shuffled(expand(() => true), rand), N = list.length;
+    if (ci === 0) {
+      const rowSp = 2, nRows = Math.max(1, Math.floor(Hm / rowSp)), perRow = Math.max(1, Math.ceil(N / nRows)), inRow = Wm / perRow;
+      list.forEach((it, k) => pts.push({ x: (k % perRow + 0.5) * inRow, y: (Math.floor(k / perRow) + 0.5) * rowSp + (Hm - nRows * rowSp) / 2, c: it.c }));
+    } else {
+      const a = Math.sqrt(A / Math.max(1, N)), cols = Math.max(1, Math.round(Wm / a)), rows = Math.max(1, Math.ceil(N / cols));
+      list.forEach((it, k) => pts.push({ x: (k % cols + 0.5) * Wm / cols + (rand() - 0.5) * a * 0.5, y: (Math.floor(k / cols) + 0.5) * Hm / rows + (rand() - 0.5) * a * 0.5, c: it.c }));
+    }
+  }
+  const PW = 760, pad = 12, s = (PW - 2 * pad) / Wm, PH = Hm * s + pad + 30;
+  const px = x => R2(pad + x * s), py = y => R2(pad + y * s);
+  const rad = { main: 0.32, pio: 0.28, und: 0.22 };
+  let g = `<rect x="${pad}" y="${pad}" width="${R2(Wm * s)}" height="${R2(Hm * s)}" class="s-plan"/>`;
+  rings.forEach(([cx, cy, r]) => { g += `<circle cx="${px(cx)}" cy="${py(cy)}" r="${R2(r * s)}" class="s-trupp"/>`; });
+  pts.forEach(p => { g += `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="${R2(rad[p.c] * s)}" class="s-dot-${p.c}"/>`; });
+  const yb = pad + Hm * s + 20;
+  g += `<rect x="${pad}" y="${R2(yb - 3)}" width="${R2(5 * s)}" height="3" class="s-bar"/>` + txt(pad + 5 * s + 6, yb, "5 m");
+  g += txt(PW - pad, yb, tx(`${pts.length} Gehölze im Ausschnitt (450 m²)`, `${pts.length} woody plants in the sample (450 m²)`), "s-txt", "end");
+  const cnt = c => pts.filter(p => p.c === c).length;
+  return { svg: `<svg viewBox="0 0 ${PW} ${R2(PH)}" role="img" aria-label="${esc(tx("Pflanzschema Waldkern", "Planting pattern forest core"))}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`,
+    main: cnt("main"), pio: cnt("pio"), und: cnt("und"), trupps: rings.length };
 }
 
 /* ---------------------------------------------------------------- ui pieces */
@@ -843,7 +1022,6 @@ function flagChips(id, fit) {
   if (s.custom) out.push(`<span class="chip info">${tx("eigene Art", "custom")}</span>`);
   return `<div class="chips">${out.join("")}</div>`;
 }
-const DEF_DENS = { tree1: 6000, tree2: 3500, pioneer: 3000, shrub: 6667, street: 0 };
 function listTable(ak, lk, cfg) {
   const L = state[ak][lk];
   const rows = L.map((x, i) => {
@@ -851,14 +1029,14 @@ function listTable(ak, lk, cfg) {
     return `<tr><td><span class="bot">${esc(s.b)}</span><span class="de">${esc(s.de)}</span></td>
 <td class="hide-sm">${esc(layerName(s.l))}</td>
 <td class="num"><input type="number" id="in-${pid}-s" data-path="${p}.s" data-scale="100" value="${r1(x.s * 100)}" step="1" min="0" max="100" aria-label="${tx("Anteil", "Share")} ${esc(s.b)}"></td>
-${cfg.dens ? `<td class="num"><input type="number" id="in-${pid}-d" data-path="${p}.d" value="${x.d}" step="100" min="0" aria-label="${tx("Dichte", "Density")} ${esc(s.b)}"></td>` : ""}
+${cfg.dens ? `<td class="num"><input type="number" id="in-${pid}-d" data-path="${p}.d.${rbCI()}" value="${rbDens(x, rbCI())}" step="100" min="0" aria-label="${tx("Dichte", "Density")} ${esc(s.b)}"></td>` : ""}
 <td class="num" id="n-${pid}">–</td><td id="f-${pid}"></td>
 <td><button type="button" class="x" data-act="rm" data-list="${ak}.${lk}" data-i="${i}" aria-label="${tx("Entfernen", "Remove")} ${esc(s.b)}">×</button></td></tr>`;
   }).join("");
   const opts = Object.entries(allCat()).filter(([id, s]) => cfg.layers.indexOf(s.l) >= 0 && !L.some(x => x.id === id))
     .sort((a, b) => a[1].b.localeCompare(b[1].b)).map(([id, s]) => `<option value="${esc(id)}">${esc(s.b)} – ${esc(s.de)}</option>`).join("");
   const lid = `${ak}-${lk}`;
-  return `<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Art", "Species")}</th><th class="hide-sm">${tx("Schicht", "Layer")}</th><th class="num">${tx("Anteil %", "Share %")}</th>${cfg.dens ? `<th class="num">${tx("Dichte / ha", "Density / ha")}</th>` : ""}<th class="num">${tx("Stück", "Pcs")}</th><th>${tx("Hinweise", "Notes")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+  return `<div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Art", "Species")}</th><th class="hide-sm">${tx("Schicht", "Layer")}</th><th class="num">${tx("Anteil %", "Share %")}</th>${cfg.dens ? `<th class="num">${tx("Dichte/ha · ", "Density/ha · ")}${esc(rbConceptName())}</th>` : ""}<th class="num">${tx("Stück", "Pcs")}</th><th>${tx("Hinweise", "Notes")}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
 <div class="listtools"><span class="listsum" id="sum-${lid}">–</span>
 <span class="addrow"><button type="button" class="btn sm" data-act="norm" data-list="${ak}.${lk}">${tx("Auf 100 % normieren", "Normalize to 100 %")}</button>
 <select id="add-${lid}" aria-label="${tx("Art hinzufügen", "Add species")}"><option value="">${tx("Art hinzufügen …", "Add species …")}</option>${opts}</select>
@@ -1045,85 +1223,127 @@ function updVP(R) {
 }
 function viewRB() {
   const S = state.rb;
+  const zk = RB_ZONES.map(z => z[0]);
+  const arows = S.areas.map((a, k) => `<tr><td><input type="text" id="in-rb-areas-${k}-id" data-path="rb.areas.${k}.id" data-str="1" value="${esc(a.id)}" style="width:4.2em" aria-label="${tx("Flächen-ID", "Area ID")}"></td>
+${["total"].concat(zk).map(z => `<td class="num"><input type="number" class="w5" id="in-rb-areas-${k}-${z}" data-path="rb.areas.${k}.${z}" value="${a[z]}" step="0.1" min="0" aria-label="${esc(a.id)} ${z}"></td>`).join("")}
+<td class="num" id="rb-ar-${k}-sum">–</td><td id="rb-ar-${k}-chk"></td>
+<td class="num" id="rb-ar-${k}-woody">–</td><td class="num" id="rb-ar-${k}-trees">–</td><td class="num" id="rb-ar-${k}-trupps">–</td>
+<td class="num" id="rb-ar-${k}-herbs">–</td><td class="num" id="rb-ar-${k}-seed">–</td><td class="num" id="rb-ar-${k}-top">–</td>
+<td><button type="button" class="x" data-act="rmarea" data-i="${k}" aria-label="${tx("Fläche entfernen", "Remove area")} ${esc(a.id)}">×</button></td></tr>`).join("");
+  const DL = { dens: true, layers: ["tree1", "tree2", "pioneer", "shrub"] }, HL = { layers: ["herb", "gc", "geo"] };
   return `<section class="area">
-<div class="area-head"><span class="eyebrow">${tx("Bereich 3 · hinter den Leitplanken", "Area 3 · behind the guardrails")}</span><h2>Randbereich</h2>
-<p>${tx("Waldmantel als Puffer zur Straße und Waldkern mit dem Charakter eines bodensauren Buchen-Eichenwaldes. Bäume stehen erst außerhalb des Wirkungsbereichs der Leitplanke.", "A forest edge as buffer to the road and a forest core with the character of an acidic beech-oak forest. Trees stand only outside the working width of the guardrail.")}</p>
+<div class="area-head"><span class="eyebrow">${tx("Bereich 3 · hinter den Leitplanken · Flächen RA–RE", "Area 3 · behind the guardrails · areas RA–RE")}</span><h2>Randbereich</h2>
+<p>${tx("Saum an Straße und Weg, Waldmantel als Puffer und Waldkern mit dem Charakter eines bodensauren Buchen-Eichenwaldes. In RE ein Weidengebüsch mit Erlensaum am Regenrückhaltebecken. Das Pflanzkonzept bestimmt Dichte und Bild.", "A Saum strip along road and path, a forest edge as buffer and a forest core with the character of an acidic beech-oak forest. In RE a willow scrub with an alder fringe next to the retention basin. The planting concept sets density and image.")}</p>
 <div class="chips" id="hd-rb"></div></div>
 <div class="area-grid"><aside class="rail">
-<fieldset><legend>${tx("Waldcharakter & Dichte", "Forest character & density")}</legend>
-${sel("rb.char", tx("Charakter Waldkern", "Character of core"), S.char, Object.keys(RB_CHAR).map(k => [k, tx(RB_CHAR[k].name[0], RB_CHAR[k].name[1])]), "rbchar")}
-${sel("rb.dens", tx("Pflanzdichte", "Planting density"), S.dens, Object.keys(RB_DENS).map(k => [k, tx(RB_DENS[k].name[0], RB_DENS[k].name[1])]), "1")}
-<p class="hint">${tx("Der Charakter setzt die Anteile im Waldkern. Die Dichte skaliert alle forstlichen Pflanzverbände.", "The character sets the shares in the core. The density scales all forestry spacings.")}</p></fieldset>
-<fieldset><legend>${tx("Flächen", "Areas")}</legend>
-${num("rb.total", tx("Pflanzfläche gesamt", "Total plantable area"), S.total, 50, "m²")}
-${num("rb.mantel", tx("Waldmantel", "Forest edge"), S.mantel, 50, "m²")}
-${num("rb.saumShare", tx("Anteil Krautsaum am Mantel", "Herb fringe share of edge"), S.saumShare, 5, "%", { scale: 100, max: 100 })}
-${num("rb.feucht", tx("Feuchtbereich", "Moist zone"), S.feucht, 50, "m²", { ex: 1 })}
-${num("rb.pathLen", tx("Weglänge mit Rasenstreifen", "Path length with lawn strips"), S.pathLen, 10, tx("lfm", "lm"), { ex: 1 })}
-${num("rb.stripW", tx("Breite Rasenstreifen", "Lawn strip width"), S.stripW, 0.025, "m")}
-<div class="calc" id="calc-rb"></div></fieldset>
+<fieldset><legend>${tx("Pflanzkonzept & Charakter", "Planting concept & character")}</legend>
+${sel("rb.concept", tx("Pflanzkonzept", "Planting concept"), S.concept, Object.keys(RB_CONCEPTS).map(k => [k, tx(RB_CONCEPTS[k].name[0], RB_CONCEPTS[k].name[1])]), "1")}
+${num("rb.truppSize", tx("Pflanzen je Trupp", "Plants per Trupp"), S.truppSize, 1, tx("St.", "pcs"), { min: 1 })}
+${num("rb.fac", tx("Zusätzlicher Dichtefaktor", "Additional density factor"), S.fac, 5, "%", { scale: 100 })}
+${sel("rb.char", tx("Waldcharakter (Anteile Waldkern)", "Forest character (core shares)"), S.char, Object.keys(RB_CHAR).map(k => [k, tx(RB_CHAR[k].name[0], RB_CHAR[k].name[1])]), "rbchar")}
+<p class="hint">${tx("Das Konzept wählt die Dichte je Art (Forstlich, Trupp, Hain). Der Charakter setzt die Anteile im Waldkern.", "The concept selects the density per species (forestry, Trupp, grove). The character sets the shares in the core.")}</p></fieldset>
+<fieldset><legend>${tx("Saum & Ansaat", "Saum & seed")}</legend>
+${sel("rb.seedType", tx("Ansaat Saum", "Saum seed"), S.seedType, [["rasen", tx("Rasen", "Lawn")], ["kraut", tx("Kräutersaum", "Herb fringe")]], "1")}
+${num("rb.sw", tx("Breite Saum", "Saum width"), S.sw, 0.05, "m")}
+${num("rb.seedLawn", tx("Saatmenge Rasen", "Seed rate, lawn"), S.seedLawn, 1, "g/m²")}
+${num("rb.seedHerb", tx("Saatmenge Kräutersaum", "Seed rate, herb fringe"), S.seedHerb, 0.5, "g/m²")}
+<p class="hint">${tx("Saum = Streifen bis 75 cm direkt an Straße oder Weg. Regiosaatgut UG 1.", "Saum = strip up to 75 cm directly next to a road or path. Regional seed UG 1.")}</p></fieldset>
 <fieldset><legend>${tx("Leitplanke & Zonierung", "Guardrail & zoning")}</legend>
 ${chk("rb.guard", tx("Leitplanke vorhanden", "Guardrail present"), S.guard)}
 ${num("rb.W", tx("Wirkungsbereich W", "Working width W"), S.W, 0.1, "m", { ex: 1 })}
 ${sel("rb.speed", tx("Zul. Geschwindigkeit", "Speed limit"), S.speed, [["70", "60–70 km/h"], ["100", "80–100 km/h"]], "")}
-${num("rb.wSaum", tx("Breite Krautsaum", "Herb fringe width"), S.wSaum, 0.5, "m")}
 ${num("rb.wStrauch", tx("Breite Strauchmantel", "Shrub mantle width"), S.wStrauch, 0.5, "m")}
 ${num("rb.wBaum", tx("Breite Baummantel", "Tree mantle width"), S.wBaum, 0.5, "m")}
 <p class="hint">${tx("Bäume mit mehr als 25 cm Stammumfang gelten als Hindernis (RPS 2009). Kritischer Abstand: 4,5 m bei 60–70 km/h, 7,5 m bei 80–100 km/h.", "Trees with a stem circumference above 25 cm count as obstacles (RPS 2009). Critical distance: 4.5 m at 60–70 km/h, 7.5 m at 80–100 km/h.")}</p></fieldset>
 <fieldset><legend>${tx("Grundwasser & Boden", "Groundwater & soil")}</legend>
-${num("rb.gw", tx("MHGW im Waldkern", "MHGW in the core"), S.gw, 0.05, "m", { ex: 1 })}
-${num("rb.topsoil", tx("Oberboden (Option)", "Topsoil (option)"), S.topsoil, 0.05, "m")}
+${num("rb.gw", tx("MHGW Waldkern / Waldmantel", "MHGW core / edge"), S.gw, 0.05, "m", { ex: 1 })}
+${num("rb.top.sa", tx("Oberboden Saum (Option)", "Topsoil Saum (option)"), S.top.sa, 0.05, "m")}
+${num("rb.top.wm", tx("Oberboden Waldmantel", "Topsoil forest edge"), S.top.wm, 0.05, "m")}
+${num("rb.top.wk", tx("Oberboden Waldkern", "Topsoil forest core"), S.top.wk, 0.05, "m")}
+${num("rb.top.we", tx("Oberboden Weidengebüsch", "Topsoil willow scrub"), S.top.we, 0.05, "m")}
 ${num("rb.startArea", tx("Startbäume: Fläche je Baum (0 = keine)", "Start trees: area per tree (0 = none)"), S.startArea, 10, "m²")}
-</fieldset>
-<fieldset><legend>${tx("Krautschicht & Saat", "Herb layer & seed")}</legend>
+<p class="hint">${tx("Weidengebüsch & Erlensaum wird als nass bewertet (MHGW 0,4 m). Bodenkonzept noch offen.", "The willow scrub is rated as wet (MHGW 0.4 m). Soil concept still open.")}</p></fieldset>
+<fieldset><legend>${tx("Krautschicht", "Herb layer")}</legend>
 ${num("rb.initShare", tx("Initialpflanzung: Flächenanteil", "Initial planting: area share"), S.initShare, 1, "%", { scale: 100, max: 100 })}
 ${num("rb.initDens", tx("Initialpflanzung: Dichte", "Initial planting: density"), S.initDens, 1, tx("St./m²", "pcs/m²"))}
-${num("rb.seedSaum", tx("Saatmenge Saum", "Seed rate fringe"), S.seedSaum, 0.5, "g/m²")}
-${num("rb.seedLawn", tx("Saatmenge Rasen", "Seed rate lawn"), S.seedLawn, 1, "g/m²")}
 </fieldset>
 <fieldset><legend>${tx("Modellhöhen (Schnitt / BIM)", "Model heights (section / BIM)")}</legend>
-${num("rb.hWK", "Waldkern", S.hWK, 1, "m")}
-${num("rb.hFB", "Feuchtbereich", S.hFB, 1, "m")}
-${num("rb.hWM", tx("Strauchmantel", "Shrub mantle"), S.hWM, 0.5, "m")}
+${num("rb.h.sa", "Saum", S.h.sa, 0.1, "m")}
+${num("rb.h.wm", "Waldmantel", S.h.wm, 0.5, "m")}
+${num("rb.h.wk", "Waldkern", S.h.wk, 1, "m")}
+${num("rb.h.we", tx("Weidengebüsch & Erlensaum", "Willow scrub"), S.h.we, 0.5, "m")}
 </fieldset>
 </aside><div class="main">
+<div class="block"><header><h3>${tx("Pflanzkonzept – Vergleich für RA–RE", "Planting concept – comparison for RA–RE")}</h3><span class="hint">${tx("Karte anklicken zum Wählen", "Click a card to select it")}</span></header><div class="ccards" id="rb-ccards"></div></div>
+<div class="block"><header><h3>${tx("Flächen RA–RE", "Areas RA–RE")}</h3><span class="hint">${tx("Zonierungsplan 23.10.2026 · Flächen in m²", "Zoning plan 23.10.2026 · areas in m²")}</span></header>
+<div class="tablewrap"><table class="sched"><thead><tr><th>ID</th><th class="num">${tx("Plan", "Plan")}</th><th class="num">Saum</th><th class="num">Waldmantel</th><th class="num">Waldkern</th><th class="num">${tx("Weide/Erle", "Willow/alder")}</th><th class="num">Σ</th><th>${tx("Prüfung", "Check")}</th><th class="num">${tx("Gehölze", "Woody")}</th><th class="num">${tx("Bäume", "Trees")}</th><th class="num">Trupps</th><th class="num">${tx("Kräuter", "Herbs")}</th><th class="num">${tx("Saat kg", "Seed kg")}</th><th class="num">${tx("Oberboden m³", "Topsoil m³")}</th><th></th></tr></thead>
+<tbody>${arows}</tbody><tfoot id="rb-ar-tot"></tfoot></table></div>
+<div class="listtools"><span class="hint">${tx("Bäume = junge Forstpflanzen und Heister, keine Hochstämme.", "Trees = young forest plants and Heister, not standard trees.")}</span><button type="button" class="btn sm" data-act="addarea">${tx("Fläche hinzufügen", "Add area")}</button></div></div>
+<figure class="sec"><figcaption><h3>${tx("Pflanzschema Waldkern · Ausschnitt 30 × 15 m", "Planting pattern forest core · sample 30 × 15 m")}</h3><span id="plannote-rb"></span></figcaption><div class="svgwrap" id="plan-rb"></div>
+<div class="legend" id="legend-rb"></div></figure>
 <figure class="sec"><figcaption><h3>${tx("Schnitt C–C · maßstäblich", "Section C–C · to scale")}</h3><span id="secnote-rb"></span></figcaption><div class="svgwrap" id="sec-rb"></div>
-<p class="hint">${tx("Fahrbahn → Leitplanke → Krautsaum → Strauchmantel → Baummantel → Waldkern. Gelb: Wirkungsbereich W. Rote Stämme stehen zu nah an der Straße.", "Road → guardrail → herb fringe → shrub mantle → tree mantle → forest core. Yellow: working width W. Red trunks stand too close to the road.")}</p></figure>
-<div class="block"><header><h3>${tx("Qualitäten", "Qualities")}</h3></header><div id="q-rb"></div><div id="ind-rb"></div></div>
+<p class="hint">${tx("Fahrbahn → Leitplanke → Saum → Strauchmantel → Baummantel → Waldkern. Gelb: Wirkungsbereich W. Rote Stämme stehen zu nah an der Straße.", "Road → guardrail → Saum → shrub mantle → tree mantle → forest core. Yellow: working width W. Red trunks stand too close to the road.")}</p></figure>
+<div class="block"><header><h3>${tx("Qualitäten", "Qualities")}</h3><span id="char-rb"></span></header><div id="q-rb"></div><div id="ind-rb"></div></div>
 <div class="block"><header><h3>${tx("Konflikte & Prüfpunkte", "Conflicts & checks")}</h3></header><div id="warn-rb"></div></div>
-<div class="block"><header class="zone-title"><h3>${tx("Waldkern · Gehölze", "Forest core · woody plants")}</h3><span class="hint" id="za-wk"></span></header>${listTable("rb", "wk", { dens: true, layers: ["tree1", "tree2", "pioneer", "shrub"] })}</div>
-<div class="block"><header class="zone-title"><h3>${tx("Feuchtbereich · Gehölze", "Moist zone · woody plants")}</h3><span class="hint" id="za-fb"></span></header>${listTable("rb", "fb", { dens: true, layers: ["tree1", "tree2", "pioneer", "shrub"] })}</div>
+<div class="block"><header class="zone-title"><h3>${tx("Waldkern · Gehölze", "Forest core · woody plants")}</h3><span class="hint" id="za-wk"></span></header>${listTable("rb", "wk", DL)}</div>
 <div class="block"><header class="zone-title"><h3>${tx("Waldmantel · Strauch- und Baummantel", "Forest edge · shrub and tree mantle")}</h3><span class="hint" id="za-wm"></span></header>${listTable("rb", "wm", { dens: true, layers: ["shrub", "tree2", "pioneer", "tree1"] })}</div>
-<div class="block"><header><h3>${tx("Krautschicht Waldkern · Initialpflanzung", "Herb layer core · initial planting")}</h3></header>${listTable("rb", "hk", { layers: ["herb", "gc", "geo"] })}</div>
-<div class="block"><header><h3>${tx("Krautschicht Feuchtbereich · Initialpflanzung", "Herb layer moist zone · initial planting")}</h3></header>${listTable("rb", "hf", { layers: ["herb", "gc", "geo"] })}</div>
+<div class="block"><header class="zone-title"><h3>${tx("Weidengebüsch & Erlensaum · am Regenrückhaltebecken", "Willow scrub & alder fringe · next to the retention basin")}</h3><span class="hint" id="za-we"></span></header>${listTable("rb", "we", DL)}</div>
+<div class="block"><header><h3>${tx("Krautschicht Waldkern · Initialpflanzung", "Herb layer forest core · initial planting")}</h3></header>${listTable("rb", "hk", HL)}</div>
+<div class="block"><header><h3>${tx("Krautschicht Weidengebüsch & Erlensaum · Initialpflanzung", "Herb layer willow scrub · initial planting")}</h3></header>${listTable("rb", "he", HL)}</div>
 <div class="block"><header><h3>${tx("Bodendeckung – Konzept", "Ground cover – concept")}</h3></header>
-<div class="qual"><div><h4>${tx("Jahre 1–4", "Years 1–4")}</h4><p>${tx("Freischneiden zwischen den Reihen, 2–3-mal pro Jahr. Keine flächige Rasen- oder Wiesenansaat in den Waldflächen.", "Cut back weeds between the rows 2–3 times per year. No full lawn or meadow seeding in the forest areas.")}</p></div>
-<div><h4>${tx("Krautschicht", "Herb layer")}</h4><p>${tx("Waldkräuter in Gruppen pflanzen; sie breiten sich aus, wenn sich das Kronendach schließt. Laub und Totholz liegen lassen.", "Plant forest herbs in groups; they spread when the canopy closes. Leave leaves and deadwood in place.")}</p></div>
-<div><h4>${tx("Saum & Rasen", "Fringe & lawn")}</h4><p>${tx("Krautsaum und Rasenstreifen mit Regiosaatgut UG 1. Option: Waldboden-Impfung mit Oberboden aus gerodeten U5-Waldflächen.", "Herb fringe and lawn strips with regional seed UG 1. Option: forest soil inoculation with topsoil from cleared U5 forest areas.")}</p></div></div></div>
-<div class="block"><header><h3>${tx("Massen", "Quantities")}</h3></header><div id="mat-rb"></div></div>
+<div class="qual"><div><h4>Saum</h4><p>${tx("Streifen bis 75 cm an Straßen und Wegen ansäen (Regiosaatgut UG 1). Er ist die Mähkante und hält Sichtfelder und Schilder frei.", "Seed the strip up to 75 cm along roads and paths (regional seed UG 1). It is the mowing edge and keeps sight lines and signs free.")}</p></div>
+<div><h4>${tx("Jahre 1–4", "Years 1–4")}</h4><p>${tx("Freischneiden 2–3-mal pro Jahr. Keine flächige Rasen- oder Wiesenansaat in Waldmantel, Waldkern oder Weidengebüsch.", "Cut back weeds 2–3 times per year. No full lawn or meadow seeding in the forest edge, core or willow scrub.")}</p></div>
+<div><h4>${tx("Krautschicht", "Herb layer")}</h4><p>${tx("Kräuter in Gruppen pflanzen; sie breiten sich aus, wenn sich das Kronendach schließt. Laub und Totholz liegen lassen. Weiden auch als Steckhölzer.", "Plant herbs in groups; they spread when the canopy closes. Leave leaves and deadwood in place. Willows also as cuttings.")}</p></div></div></div>
+<div class="block"><header><h3>${tx("Massen", "Quantities")}</h3><span class="hint">${tx("Summe RA–RE · je Fläche im CSV-Export", "Total RA–RE · per area in the CSV export")}</span></header><div id="mat-rb"></div></div>
 </div></div></section>`;
 }
+function conceptCards(R) {
+  return Object.keys(RB_CONCEPTS).map(k => {
+    const c = RB_CONCEPTS[k], m = R.cmp[c.i], on = state.rb.concept === k;
+    return `<button type="button" class="ccard" data-act="concept" data-c="${k}" aria-pressed="${on}">
+<span class="cn"><span>${esc(tx(c.name[0], c.name[1]))}</span>${k === "trupp" ? `<span class="chip ok">${tx("Empfehlung", "Recommended")}</span>` : ""}</span>
+<span class="cs">${esc(tx(c.sub[0], c.sub[1]))}</span>
+<span class="cg"><span>${tx("Bäume", "Trees")}</span><span>${nf(m.trees)}</span><span>${tx("Sträucher", "Shrubs")}</span><span>${nf(m.shrubs)}</span>
+<span>${tx("Gehölze gesamt", "Woody, total")}</span><span><b>${nf(m.woody)}</b></span><span>${tx("Bäume je ha Waldkern", "Trees per ha, core")}</span><span>${nf(m.wkTrees)}</span>
+<span>${tx("Mittl. Abstand Waldkern", "Avg. spacing, core")}</span><span>${nf(m.spacing, 2)} m</span></span></button>`;
+  }).join("");
+}
 function updRB(R) {
-  const S = state.rb;
+  const S = state.rb, ci = R.ci;
+  setHTML("rb-ccards", conceptCards(R));
+  R.areas.forEach((a, k) => {
+    const p = R.per[k], set = (id, v) => { const el = document.getElementById(`rb-ar-${k}-${id}`); if (el) el.innerHTML = v; };
+    set("sum", nf(a.sum, 1));
+    set("chk", Math.abs(a.diff) < 0.005 ? `<span class="chip ok">OK</span>` : Math.abs(a.diff) <= 0.5 ? `<span class="chip ok">${tx("Rundung", "rounding")}</span>` : `<span class="chip bad">${nf(a.diff, 1)} m²</span>`);
+    set("woody", nf(p.woody)); set("trees", nf(p.trees)); set("trupps", ci === 1 ? nf(p.trupps) : "–");
+    set("herbs", nf(p.herbs)); set("seed", nf(p.seed, 2)); set("top", nf(p.top, 1));
+  });
+  const t = R.tot;
+  setHTML("rb-ar-tot", `<tr><td><b>${tx("Summe", "Total")}</b></td><td class="num"><b>${nf(t.total, 1)}</b></td><td class="num">${nf(t.sa, 1)}</td><td class="num">${nf(t.wm, 1)}</td><td class="num">${nf(t.wk, 1)}</td><td class="num">${nf(t.we, 1)}</td><td class="num"><b>${nf(t.sum, 1)}</b></td><td></td><td class="num"><b>${nf(R.woody)}</b></td><td class="num">${nf(R.trees)}</td><td class="num">${ci === 1 ? nf(R.trupps) : "–"}</td><td class="num">${nf(R.nHerb)}</td><td class="num">${nf(R.seed, 2)}</td><td class="num">${nf(R.topsoil, 1)}</td><td></td></tr>`);
+  const PL = planRB(S, R);
+  setHTML("plan-rb", PL.svg);
+  setHTML("legend-rb", `<span><i></i>${tx("Eiche / Buche", "Oak / beech")} · ${nf(PL.main)}</span><span><i class="pio"></i>${tx("Pioniere, Eberesche", "Pioneers, rowan")} · ${nf(PL.pio)}</span><span><i class="und"></i>${tx("Unterstand (Faulbaum, Stechpalme)", "Understory (alder buckthorn, holly)")} · ${nf(PL.und)}</span>${ci === 1 ? `<span>${tx("gestrichelt", "dashed")}: ${nf(PL.trupps)} Trupps à ${nf(R.size)}</span>` : ""}`);
+  setHTML("plannote-rb", `<span class="chip">${esc(rbConceptName())}</span>`);
   setHTML("sec-rb", secRB(S, R));
   setHTML("secnote-rb", R.okTree ? `<span class="chip ok">${tx("Bäume außerhalb der Gefahrenzone", "Trees outside the hazard zone")}</span>` : `<span class="chip bad">${tx("Bäume zu nah an der Straße", "Trees too close to the road")}</span>`);
-  setHTML("calc-rb", `<span>Waldkern: <b>${nf(R.core)} m²</b></span><span>${tx("Strauch- / Baummantel", "Shrub / tree mantle")}: <b>${nf(R.wmA)} m²</b></span><span>Krautsaum: <b>${nf(R.saum)} m²</b> · ${tx("Rasen", "lawn")}: <b>${nf(R.lawn)} m²</b></span><span>${tx("Rechnerische Randlänge", "Implied edge length")}: <b>${nf(R.edgeLen)} m</b></span>`);
-  setHTML("q-rb", qualBlock(RB_Q[S.char] || RB_Q.buei));
+  const ch = RB_CHAR[S.char];
+  setHTML("char-rb", `<span class="chip">${esc(rbConceptName())}</span>${ch ? ` <span class="chip">${esc(tx(ch.name[0], ch.name[1]))}</span>` : ""}`);
+  setHTML("q-rb", qualBlock((RB_CONCEPTS[S.concept] || RB_CONCEPTS.trupp).q));
   setHTML("ind-rb", inds([
-    { k: tx("Bäume außerhalb W / krit. Abstand", "Trees outside W / critical distance"), v: R.okTree ? tx("ja", "yes") : tx("nein", "no"), s: tx(`Bäume ab ${nf(R.treeStart, 1)} m, Grenze ${nf(R.limit, 1)} m`, `trees from ${nf(R.treeStart, 1)} m, limit ${nf(R.limit, 1)} m`), st: R.okTree ? "ok" : "bad" },
-    { k: tx("Eiche + Buche im Waldkern", "Oak + beech in the core"), v: pct(R.charShare), s: tx("Charakterarten nach Stückzahl", "character species by number"), st: st3(R.charShare, 0.5, 0.35) },
+    { k: tx("Bäume außerhalb W / krit. Abstand", "Trees outside W / critical distance"), v: R.okTree ? tx("ja", "yes") : tx("nein", "no"), s: tx(`Bäume ab ${nf(R.treeStart, 2)} m, Grenze ${nf(R.limit, 1)} m`, `trees from ${nf(R.treeStart, 2)} m, limit ${nf(R.limit, 1)} m`), st: R.okTree ? "ok" : "bad" },
+    { k: tx("Bäume gesamt", "Trees in total"), v: nf(R.trees), s: ci === 1 ? tx(`${nf(R.trupps)} Trupps à ${nf(R.size)}`, `${nf(R.trupps)} Trupps of ${nf(R.size)}`) : tx(`${nf(R.shrubs)} Sträucher`, `${nf(R.shrubs)} shrubs`) },
+    { k: tx("Langfristig große Eichen", "Large oaks in the long term"), v: "≈ " + nf(R.largeOaks), s: tx("ca. 70 Zielbäume je ha Waldkern", "approx. 70 target trees per ha of core") },
+    { k: tx("Eiche + Buche im Waldkern", "Oak + beech in the core"), v: pct(R.charShare), s: tx("nach Stückzahl", "by number"), st: st3(R.charShare, 0.5, 0.35) },
     { k: tx("Passt zum Grundwasser", "Fits groundwater"), v: pct(R.eco.fit), st: st3(R.eco.fit, 0.9, 0.7) },
-    { k: tx("Mittlere Dichte", "Average density"), v: nf(R.dens) + " /ha", s: tx(`${nf(R.woody)} Gehölze`, `${nf(R.woody)} woody plants`) },
+    { k: tx("Mittlere Dichte Gehölzzonen", "Average density, woody zones"), v: nf(R.dens) + " /ha", s: tx(`${nf(R.woody)} Gehölze`, `${nf(R.woody)} woody plants`) },
     { k: tx("Gebietseigen / heimisch", "Regional / native"), v: pct(R.eco.native), st: st3(R.eco.native, 0.95, 0.8) },
-    { k: tx("Vogelnährgehölz", "Bird food"), v: pct(R.eco.bird) },
-    { k: tx("Immergrün (Winterbild)", "Evergreen (winter)"), v: pct(R.eco.ever) },
     { k: tx("Arten / giftige Arten", "Species / toxic species"), v: `${R.eco.species} / ${R.eco.toxic}` }
   ]));
   setHTML("warn-rb", warnList(R.warns));
-  setHTML("za-wk", `${nf(R.core)} m²`); setHTML("za-fb", `${nf(S.feucht)} m²`); setHTML("za-wm", `${nf(R.wmA)} m²`);
-  fillList("rb", "wk", R.wk); fillList("rb", "fb", R.fb); fillList("rb", "wm", R.wm); fillList("rb", "hk", R.hk); fillList("rb", "hf", R.hf);
+  setHTML("za-wk", `${nf(t.wk)} m²`); setHTML("za-wm", `${nf(t.wm)} m²`); setHTML("za-we", `${nf(t.we)} m²`);
+  fillList("rb", "wk", R.wk); fillList("rb", "wm", R.wm); fillList("rb", "we", R.we); fillList("rb", "hk", R.hk); fillList("rb", "he", R.he);
   setHTML("mat-rb", matTable(rowsRB(R)));
-  setHTML("hd-rb", headChips(R.warns, [`${nf(S.total)} m²`, `${nf(R.woody)} ${tx("Gehölze", "woody plants")}`]));
+  setHTML("hd-rb", headChips(R.warns, [`${nf(t.total)} m²`, `${nf(R.woody)} ${tx("Gehölze", "woody plants")}`, rbConceptName()]));
 }
 function headChips(warns, facts) {
   const nb = warns.filter(w => w.lvl === "bad").length, nw = warns.filter(w => w.lvl === "warn").length;
@@ -1140,9 +1360,9 @@ function viewOverview(C) {
   const totals = [
     [tx("Gehölze (Sträucher, Forstpflanzen, Heister)", "Woody plants (shrubs, forest plants, Heister)"), nf(sw.nShrub + rb.woody + rb.start), tx("St.", "pcs")],
     [tx("Platzbäume Hochstamm", "Plaza trees, standard"), nf(vp.n), tx("St.", "pcs")],
-    [tx("Stauden, Bodendecker, Waldkräuter", "Perennials, ground cover, forest herbs"), nf(sw.nGA + sw.nGB + rb.nHK + rb.nHF), tx("St.", "pcs")],
+    [tx("Stauden, Bodendecker, Waldkräuter", "Perennials, ground cover, forest herbs"), nf(sw.nGA + sw.nGB + rb.nHerb), tx("St.", "pcs")],
     [tx("Geophyten", "Geophytes"), nf(sw.nGeo), tx("St.", "pcs")],
-    [tx("Regiosaatgut UG 1", "Regional seed UG 1"), nf(rb.seedSaum + rb.seedLawn, 2), "kg"],
+    [tx("Regiosaatgut UG 1", "Regional seed UG 1"), nf(rb.seed, 2), "kg"],
     [tx("Baumsubstrat (Bauweise 1 + 2)", "Tree substrate (Bauweise 1 + 2)"), nf(vp.B1 + vp.B2), "m³"],
     [tx("Oberboden (Stadtwaldgarten + Option Randbereich)", "Topsoil (urban forest garden + verge option)"), nf(sw.topsoil + rb.topsoil), "m³"],
     [tx("Holzhäckselmulch", "Wood chip mulch"), nf(sw.mulch[0]) + "–" + nf(sw.mulch[1]), "m³"],
@@ -1156,7 +1376,7 @@ function viewOverview(C) {
 <div class="cards">
 ${card("stadtwald", "Mini-Stadtwaldgarten", tx("Strauchinseln · wild", "shrub islands · wild"), [[tx("Pflanzfläche", "Planting area"), nf(sw.T) + " m²"], [tx("Sträucher", "Shrubs"), nf(sw.nShrub)], [tx("Bodendecker", "Ground cover"), nf(sw.nGA + sw.nGB)], [tx("Dachsicht", "Roof view"), sw.visible ? tx("ja", "yes") : tx("nein", "no")], [tx("MHGW", "MHGW"), nf(state.sw.gw, 2) + " m"]], sw.warns)}
 ${card("vorplatz", "Vorplatz", tx("Solitärbäume · befestigt", "solitary trees · paved"), [[tx("Bäume", "Trees"), nf(vp.n)], [tx("Kronenfläche / Platz", "Canopy / plaza"), pct(vp.cover)], [tx("Wurzelraum gesamt", "Root space total"), nf(vp.B1 + vp.B2) + " m³"], [tx("Grubentiefe", "Pit depth"), nf(vp.pit, 2) + " m"], [tx("MHGW", "MHGW"), nf(state.vp.gw, 2) + " m"]], vp.warns)}
-${card("randbereich", "Randbereich", tx("Waldmantel · Buchen-Eichenwald", "forest edge · beech-oak forest"), [[tx("Pflanzfläche", "Planting area"), nf(state.rb.total) + " m²"], [tx("Gehölze", "Woody plants"), nf(rb.woody)], [tx("Mittlere Dichte", "Average density"), nf(rb.dens) + " /ha"], [tx("Bäume außerhalb W", "Trees outside W"), rb.okTree ? tx("ja", "yes") : tx("nein", "no")], [tx("MHGW", "MHGW"), nf(state.rb.gw, 2) + " m"]], rb.warns)}
+${card("randbereich", "Randbereich", tx("RA–RE · Waldmantel · Buchen-Eichenwald", "RA–RE · forest edge · beech-oak forest"), [[tx("Pflanzfläche", "Planting area"), nf(rb.tot.total) + " m²"], [tx("Pflanzkonzept", "Planting concept"), rbConceptName()], [tx("Gehölze", "Woody plants"), nf(rb.woody)], [tx("davon Bäume", "of which trees"), nf(rb.trees)], [tx("Bäume außerhalb W", "Trees outside W"), rb.okTree ? tx("ja", "yes") : tx("nein", "no")]], rb.warns)}
 </div>
 <div class="block"><header><h3>${tx("Massen gesamt", "Total quantities")}</h3><span class="hint">${tx("Details je Bereich im jeweiligen Reiter", "Details per area in each tab")}</span></header>
 <div class="tablewrap"><table class="sched"><thead><tr><th>${tx("Position", "Item")}</th><th class="num">${tx("Menge", "Qty")}</th><th>${tx("Einheit", "Unit")}</th></tr></thead><tbody>${totals.map(r => `<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join("")}</tbody></table></div></div>
@@ -1185,9 +1405,9 @@ function shell() {
 <div class="panel" id="export-panel" hidden><p id="export-msg"></p><textarea id="export-text" readonly aria-label="Export"></textarea><div class="row"><button type="button" class="btn sm" data-act="copy">${tx("Kopieren", "Copy")}</button><button type="button" class="btn sm" data-act="export-close">${tx("Schließen", "Close")}</button></div></div>
 <nav class="tabs" role="tablist">${tabs.map(([k, l, s]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${ui.tab === k}"><span>${esc(l)}</span><small>${esc(s)}</small></button>`).join("")}</nav>
 <main id="view"></main>
-<footer class="foot"><p><b>${tx("Planungsheuristiken (Annahmen)", "Planning heuristics (assumptions)")}:</b> ${tx("Grundwasser für Sträucher/Kräuter: unter 0,8 m kritisch, 0,8–1,5 m Vorsicht für trockenheitsliebende Arten; für Bäume: unter 1,0 m kritisch, 1,0–2,0 m Vorsicht. Feuchtbereich wird als nass (MHGW 0,4 m) bewertet. Alle Werte sind Startwerte für Phase 3 und mit Fachplanung und Gutachten abzustimmen.", "Groundwater for shrubs/herbs: below 0.8 m critical, 0.8–1.5 m caution for species that need drainage; for trees: below 1.0 m critical, 1.0–2.0 m caution. The moist zone is rated as wet (MHGW 0.4 m). All values are Phase 3 starting points and must be checked with specialists and surveys.")}</p>
+<footer class="foot"><p><b>${tx("Planungsheuristiken (Annahmen)", "Planning heuristics (assumptions)")}:</b> ${tx("Grundwasser für Sträucher/Kräuter: unter 0,8 m kritisch, 0,8–1,5 m Vorsicht für trockenheitsliebende Arten; für Bäume: unter 1,0 m kritisch, 1,0–2,0 m Vorsicht. Weidengebüsch & Erlensaum wird als nass (MHGW 0,4 m) bewertet. Alle Werte sind Startwerte für Phase 3 und mit Fachplanung und Gutachten abzustimmen.", "Groundwater for shrubs/herbs: below 0.8 m critical, 0.8–1.5 m caution for species that need drainage; for trees: below 1.0 m critical, 1.0–2.0 m caution. The willow scrub is rated as wet (MHGW 0.4 m). All values are Phase 3 starting points and must be checked with specialists and surveys.")}</p>
 <ul><li><a href="https://6sku3uaup9f9.din.de/en/technical-rule/fll-baumpflanzungen-teil-2/139904945" target="_blank" rel="noopener">FLL Baumpflanzungen Teil 2:2010</a> · <a href="https://strassenbaumliste.galk.de/sblistepdf.php" target="_blank" rel="noopener">GALK-Straßenbaumliste</a> · <a href="https://www.bern.ch/themen/planen-und-bauen/bern-baut/arbeitshilfen/wurzelraum-fuer-baeume-im-strassenraum/anhang/arbeitshilfe-wurzelraum-fur-strassenbaume-version.pdf" target="_blank" rel="noopener">Stadt Bern – Wurzelraum</a></li>
-<li><a href="https://kreistagsinfo.landkreis-peine.de/public/wicket/resource/org.apache.wicket.Application/doc1005014.pdf" target="_blank" rel="noopener">RPS 2009 (Landkreis Peine)</a> · <a href="https://wald-mv.de/static/WALDMV/Inhalte/Waldwissen/Gr%C3%BCner%20Ordner%20-%20Naturnaher%20Waldbau%20in%20MV/C1_Pflanzverbaende_UnterbauVoranbau_Bloessen.pdf" target="_blank" rel="noopener">Landesforst MV – Pflanzverbände</a> · <a href="https://www.bfn.de/sites/default/files/BfN/natura2000/Dokumente/9190_bodensaure_eichenwaelder.pdf" target="_blank" rel="noopener">BfN – LRT 9190</a> · <a href="https://www.gesetze-im-internet.de/ermiv/anlage.html" target="_blank" rel="noopener">ErMiV – Ursprungsgebiete</a></li></ul></footer>
+<li><a href="https://kreistagsinfo.landkreis-peine.de/public/wicket/resource/org.apache.wicket.Application/doc1005014.pdf" target="_blank" rel="noopener">RPS 2009 (Landkreis Peine)</a> · <a href="https://wald-mv.de/static/WALDMV/Inhalte/Waldwissen/Gr%C3%BCner%20Ordner%20-%20Naturnaher%20Waldbau%20in%20MV/C1_Pflanzverbaende_UnterbauVoranbau_Bloessen.pdf" target="_blank" rel="noopener">Landesforst MV – Pflanzverbände</a> · <a href="https://www.bfn.de/sites/default/files/BfN/natura2000/Dokumente/9190_bodensaure_eichenwaelder.pdf" target="_blank" rel="noopener">BfN – LRT 9190</a> · <a href="https://www.waldwissen.net/de/waldwirtschaft/waldbau/waldverjuengung/eiche-nester-oder-trupp" target="_blank" rel="noopener">waldwissen.net – Eiche: Nester oder Trupp?</a> · <a href="https://www.gesetze-im-internet.de/ermiv/anlage.html" target="_blank" rel="noopener">ErMiV – Ursprungsgebiete</a></li></ul></footer>
 </div>`;
 }
 function renderStatus() {
@@ -1254,7 +1474,7 @@ function applyPreset(kind) {
     const p = RB_CHAR[state.rb.char];
     if (p) {
       const keep = state.rb.wk.filter(x => !(x.id in p.wk));
-      const base = Object.keys(p.wk).map(id => { const old = state.rb.wk.find(x => x.id === id); return { id, s: p.wk[id], d: old ? old.d : (DEF_DENS[sp(id).l] || 5000) }; });
+      const base = Object.keys(p.wk).map(id => { const old = state.rb.wk.find(x => x.id === id); return { id, s: p.wk[id], d: old ? old.d : defD3(sp(id).l) }; });
       keep.forEach(x => { x.s = 0; });
       state.rb.wk = base.concat(keep);
     }
@@ -1270,7 +1490,7 @@ function onAct(btn) {
     if (!id) return;
     const L = getList(btn.dataset.list), s = sp(id);
     const item = { id, s: 0.05 };
-    if (btn.dataset.list.indexOf("rb.w") === 0 || btn.dataset.list === "rb.fb") item.d = DEF_DENS[s.l] || 5000;
+    if (["rb.wk", "rb.wm", "rb.we"].indexOf(btn.dataset.list) >= 0) item.d = defD3(s.l);
     L.push(item); changed(true); return;
   }
   if (act === "custom") {
@@ -1281,7 +1501,7 @@ function onAct(btn) {
     const h = Math.max(0.05, +String(g("h").value).replace(",", ".") || 1);
     state.custom[id] = { b, de: (g("de").value || "").trim(), l: g("l").value, h: [Math.round(h * 0.6 * 10) / 10, h], m: +g("m").value, o: g("o").value, t: g("t").checked ? 1 : 0, custom: 1 };
     const item = { id, s: 0.05 };
-    if (btn.dataset.list.indexOf("rb.w") === 0 || btn.dataset.list === "rb.fb") item.d = DEF_DENS[g("l").value] || 5000;
+    if (["rb.wk", "rb.wm", "rb.we"].indexOf(btn.dataset.list) >= 0) item.d = defD3(g("l").value);
     getList(btn.dataset.list).push(item); changed(true); return;
   }
   if (act === "addisl") { const n = state.sw.islands.length + 1; state.sw.islands.push({ id: "I-" + String(n).padStart(2, "0"), a: 100, e: 20 }); changed(true); return; }
@@ -1293,6 +1513,9 @@ function onAct(btn) {
     state.vp.trees.push({ id, n: 1, c: s.c ? s.c[1] : 8, h: s.h[1], g: big ? "L" : "S", grate: big ? 9 : 6.25, vol: big ? p.L : p.S });
     changed(true); return;
   }
+  if (act === "concept") { if (RB_CONCEPTS[btn.dataset.c]) { state.rb.concept = btn.dataset.c; changed(true); } return; }
+  if (act === "addarea") { const n = state.rb.areas.length; state.rb.areas.push({ id: "R" + String.fromCharCode(65 + (n % 26)), total: 0, sa: 0, wm: 0, wk: 0, we: 0 }); changed(true); return; }
+  if (act === "rmarea") { state.rb.areas.splice(+btn.dataset.i, 1); changed(true); return; }
   if (act === "save") return saveForAll();
   if (act === "csv") return exportFile("csv");
   if (act === "json") return exportFile("json");
@@ -1316,7 +1539,7 @@ function csvText() {
   const head = [tx("Bereich", "Area"), tx("Teil", "Part"), tx("Botanischer Name / Position", "Botanical name / item"), tx("Deutscher Name", "German name"), tx("Menge", "Quantity"), tx("Einheit", "Unit"), tx("Qualität / Hinweis", "Quality / note")];
   const lines = [head.map(q).join(";")];
   const add = (area, rows) => rows.forEach(r => lines.push([area, r.zone, r.b, r.de, qtyText(r.q, r.u), r.u, r.note].map(q).join(";")));
-  add("Mini-Stadtwaldgarten", rowsSW(C.sw)); add("Vorplatz", rowsVP(C.vp)); add("Randbereich", rowsRB(C.rb));
+  add("Mini-Stadtwaldgarten", rowsSW(C.sw)); add("Vorplatz", rowsVP(C.vp)); add("Randbereich", rowsRB(C.rb).concat(rowsRBAreas(C.rb)));
   return "﻿" + lines.join("\r\n");
 }
 async function exportFile(kind) {
